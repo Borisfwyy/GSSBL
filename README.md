@@ -68,7 +68,7 @@ Provide two JSON files of the same vocabulary (keys are tokens, values are 512-d
 
 Example format:
 
-```json
+```txt
 {
   "8gxzzbv7w8": [0.1, 0.2, 0.3, /* ... 512 dims ... */],
   "jrzjjh3g1r": [0.05, 0.07, 0.11 /* ... */],
