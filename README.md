@@ -11,7 +11,7 @@ This model provides a new AI-based approach for **oracle bone rejoin**. It was p
 - Learnable fusion weight `α` to combine **meaning** and **shape** embeddings.
 - Switch between **primary-character** and **secondary-character** tokens via `use_subword`.
 - Early stopping on training loss (patience).
-- Metrics: **AUROC** and **AUPR**.
+- Metrics: **AUROC** , **AUPR** , **Accuracy** , **Precision** , **Recall** and **F1 score**.
 - Multiple runs with averaged results saved to CSV.
 
 ---
@@ -77,7 +77,7 @@ Example format:
 ```
 
 
-> The glyphic embeddings can be trained using `vae.py`.
+> The glyphic embeddings can be trained using `vae.py`. The data required for this step can be accessed at [Zenodo](https://zenodo.org/records/14882488).
 
 > To optimise glyphic embeddings using the secondary-character glyphic contrastive learning module (SGCLM), please use `contrastive.py`.
 
