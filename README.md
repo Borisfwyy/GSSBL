@@ -84,6 +84,7 @@ Example format:
 
 > To optimise glyphic embeddings using the secondary-character glyphic contrastive learning module (SGCLM), please use `contrastive.py`.
 
+> The file **`data/tag.txt`** stores the **primary–secondary tag relationships** used in the SGCLM.  Each line represents a single *primary-character tag* followed by its corresponding *secondary-character tags*.  All secondary-character tags listed in the same line belong to the same primary-character tag.
 
 
 ---
