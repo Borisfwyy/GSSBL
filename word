@@ -90,7 +90,7 @@
 
 \begin{document}
 
-\title[Article Title]{A Multi-Model Framework and Dataset for Bone-Level Association Prediction in Oracle Bone Inscriptions}
+\title[Article Title]{A Multi-Modal Dataset and Method for Bone-Level Association Prediction in Oracle Bone Inscriptions}
 
 %%=============================================================%%
 %% GivenName	-> \fnm{Joergen W.}
@@ -125,7 +125,7 @@
 
 \author*[2]{\fnm{Yongge} \sur{Liu}}\email{liuyongge@aynu.edu.cn}
 
-\affil*[1]{\orgdiv{School of Computer and Information Engineering}, \orgname{Anyang Normal University}, \orgaddress{\city{Anyang}, \postcode{455000}, \state{Henan}, \country{China}}}
+\affil[1]{\orgdiv{School of Computer and Information Engineering}, \orgname{Anyang Normal University}, \orgaddress{\city{Anyang}, \postcode{455000}, \state{Henan}, \country{China}}}
 
 \affil[2]{\orgdiv{Key Laboratory of Oracle Bone Inscriptions Information Processing}, \orgname{Ministry of Education of China}, \orgaddress{\city{Anyang}, \postcode{455000}, \state{Henan}, \country{China}}}
 
@@ -143,7 +143,12 @@
 %% Sample for unstructured abstract %%
 %%==================================%%
 
-\abstract{Oracle bone inscriptions are the earliest known writing system in China, dating back 3000 years. These inscriptions, usually carved on tortoise shells and scapula, serve as invaluable historical records of early Chinese civilization. However, due to natural erosion, a large number of oracle bones have been fragmented into small pieces. This fragmentation often results in incomplete sentences and the loss of contextual information, which poses significant challenges for accurate interpretation and digital reconstruction. However, the previous fragment rejoining methods mainly rely on the edge patterns of the fragments, using the sentences to determine the bone-level association remains largely unsolved. In this work, we present the first publicly available benchmark dataset for bone-level sentence association prediction in Oracle bone inscriptions. We also propose a multi-modal learning method that integrates textual and glyphic features of sentences to predict associations between sentence pairs. The proposed dataset and method aim to assist researchers in identifying likely associations among fragments, thereby facilitating the reconstruction and understanding of damaged oracle bone texts.}
+%handone 在保证符合字数要求的前提下进行修改
+%This fragmentation often results in incomplete sentences that lead to the loss of contextual information 我的想法是 不完整的句子导致了contextual information的损失
+% the fragments, while using the sentences 加一个while 表示转折
+% In this work, we present the first publicly available benchmark dataset for bone  前面改成To address this issue
+
+\abstract{Oracle bone inscriptions are China’s earliest writing system, dating back 3000 years. Usually carved on tortoise shells and bones, they serve as invaluable records of early Chinese civilisation. Due to erosion, a large number of oracle bones have been fragmented into small pieces. This fragmentation often results in incomplete sentences and the loss of contextual information, which poses significant challenges for accurate interpretation and digital reconstruction. Previous rejoining methods mainly rely on edge patterns, while determining bone-level associations through semantic information remains largely unsolved. To address this issue, we present the first public benchmark for predicting sentence-level associations of oracle bone fragments. We also propose a multi-modal learning framework integrating textual and glyphic features of sentences to predict associations between sentence pairs. The proposed dataset and method aim to assist researchers in identifying likely associations among fragments, thereby facilitating the reconstruction and understanding of damaged oracle bone texts.}
 
 
 %\keywords{keyword1, Keyword2, Keyword3, Keyword4}
@@ -156,45 +161,64 @@
 
 \section{Introduction}\label{sec_introduction}
 
-Oracle bone inscriptions (OBIs) were primarily carved onto tortoise shells and animal bones, serving as records of ancient Chinese civilization during the Shang dynasty over three millennia ago. Since OBIs contain a wealth of historical and linguistic information, they provide critical insights into early Chinese writing systems, religious practices, political structures, social customs, calendrical systems, and even natural phenomena such as weather and astronomical events \cite{SOUC202411054}. As a result, OBIs serve as primary source material for interdisciplinary research across archaeology, palaeography, linguistics, and history \cite{CDXB202305008}. However, due to drilling, scorching, natural erosion over thousands of years, and the lack of scientific preservation during early excavations, many oracle bones have become fragmented \cite{GUDX202401003}.
+%duanS1old1
+Oracle bone inscriptions (OBIs) were primarily carved onto tortoise shells and animal bones, serving as records of ancient Chinese civilisation during the Shang dynasty over three millennia ago. Since OBIs contain a wealth of historical and linguistic information, they provide critical insights into early Chinese writing systems, religious practices, political structures, social customs, calendrical systems, and even natural phenomena such as weather and astronomical events \cite{SOUC202411054}. As a result, OBIs serve as primary source material for interdisciplinary research across archaeology, palaeography, linguistics, and history \cite{CDXB202305008}. However, due to drilling, scorching, natural erosion over thousands of years, and the lack of scientific preservation during early excavations, many oracle bones have become fragmented \cite{GUDX202401003}.
 
-The fragmentation of oracle bones leads to a series of challenges in OBI research \cite{GGBW201101003}. This phenomenon not only disrupts the continuity of individual inscriptions but also obscures the overall structure of sentences, making it difficult for researchers to reconstruct the original text. Such limitations hinder accurate interpretation of the inscriptions, thereby restricting our understanding of ancient Chinese civilization. Consequently, to rejoin fragmented oracle bones into their original form so as to complete the sentences has become a key task in OBI studies.
+%duanS1old2
+The fragmentation of oracle bones leads to a major challenge in OBI research \cite{GGBW201101003}. The fragmentation not only disrupts the continuity of individual inscriptions but also obscures the overall structure of sentences, making it difficult for researchers to reconstruct the original text. Such limitations hinder accurate interpretation of the inscriptions, thereby restricting our understanding of ancient Chinese civilisation. Consequently, to rejoin fragmented oracle bones into their original form to complete the sentences has become a key task in OBI studies. By rejoining Oracle bones, complete divinatory inscriptions can be reconstructed, thus providing providing coherent texts. Such reconstruction not only yields more effective historical materials from the Shang dynasty but also offers new support for the classification and provenance analysis of scattered oracle bone fragments.
 
-Over the years, researchers have explored two primary directions to rejoin the oracle bones \cite{GGBW201101003}. The first is manual rejoining by human experts \cite{ZJSX201205032}. The experts rely on deep domain knowledge in palaeography, material texture, and historical grammar to identify matching fragments. By closely examining the shapes of fracture lines and linguistic context, the researchers can piece together broken bones and recover lost inscriptions with very high accuracy. This traditional approach, while providing highly reliable results, is time-consuming and limited by human capacity. The second is artificial intelligence (AI) methods \cite{zhang2021deep, zhang2022data,zhang2025deep}. These methods utilise machine learning based methods to match the edge between bones to rejoin potential bone image pairs. AI can process thousands of fragments quickly, hence, using AI to facilitate the restore of oracle bones has been an appealing research direction \cite{zhang2025deep}.  
+%duanS1old3
+Over the years, researchers have explored two primary directions to rejoin the oracle bones \cite{GGBW201101003}. The first direction is manual rejoining by human experts \cite{ZJSX201205032}. The experts rely on deep domain knowledge in palaeography, material texture, and historical grammar to identify matching fragments. By closely examining the shapes of fracture lines and linguistic context, the researchers can piece together broken bones and recover lost inscriptions with very high accuracy. This traditional approach, while providing highly reliable results, is time-consuming and limited by human capacity. The second direction is Artificial Intelligence (AI)-based methods \cite{zhang2021deep, zhang2022data,zhang2025deep}. These methods utilise machine learning based methods to match the edge between bones to rejoin potential bone image pairs. Due to advances in machine learning algorithms and computing power, AI-based methods are able to process thousands of molecular fragments efficiently \cite{zhang2025deep}. 
 
-Previous AI methods often overlook essential semantic and glyphic features in oracle bone analysis \cite{MSDJ202102014}. These approaches typically rely on local edge patterns to identify fragments that are from the same bone, emphasising edge similarity. However, due to bone texture, scorching, and erosion marks, many fragments share similar edges. Thus, relying only on edges may cause false positives \cite{DZXU202304009}. Introducing semantic and glyphic information can provide additional modalities, which to some extent makes the results more reliable \cite{SXYK202505001}. However, to the best of our knowledge, data containing such information remains unavailable in a direct form. Therefore, a benchmark dataset named Oracle Bone Inscription Dataset with Additional Contextual Reconstruction (OBID-ACR) is proposed. This dataset is constructed from annotated oracle bone fragments, specifically compiling multiple inscriptions originating from the same bone to better capture contextual relationships.
+%duanS1old4
+Previous AI-based methods often overlook essential semantic and glyphic features in oracle bone analysis \cite{MSDJ202102014}. These approaches typically rely on local edge patterns to identify fragments from the same bone, emphasising edge similarity. However, due to bone texture, scorching, and erosion marks, many fragments share similar edges. Thus, relying only on edges may lead to false positive predictions \cite{DZXU202304009}. Introducing semantic and glyphic information can provide additional modalities, which can further enhance the reliability of the results \cite{SXYK202505001}. However, to the best of our knowledge, there is no publicly available dataset that directly provides such semantic and glyphic information. Therefore, a benchmark dataset named Oracle Bone Inscription Dataset with Additional Contextual Reconstruction (OBID-ACR) is proposed. This dataset is constructed from annotated oracle bone fragments, specifically containing multiple inscriptions originating from the same bone to better capture contextual relationships. OBID-ACR provides new resources for training and evaluation, which can be used to train models for tasks such as contextual understanding, divinatory inscription matching, and fragment association analysis. 
 
-The proposed dataset is constructed based on the OBIs from multiple sources. It contains the images, sentences, tags to comprehensively represent the various modalities of the OBIs. The images of all the oracle bones are directly sourced from Oracle Bone Inscription Collection \cite{jgwhj} and Yinxu Huayuanzhuang East Oracle Bones \cite{jhuayuanzhuangdong}. These collections represent some of the most comprehensive sets of scientifically excavated oracle bones. The rejoining cases of the fragments are mainly collected from reliable online platforms, including the Pre-Qin History Research Workshop \citep{xianqin} and Zuiyu Lianzhu \citep{zylz} with manual annotations. OBID-ACR employs two granular labelling schemes—primary-character and secondary-character—to represent oracle characters and their associated handwritten images. The primary-character tag captures the main semantic information and displays the most commonly occurring glyphic image. The secondary-character tag provides a more detailed representation of character usage and semantics, incorporating images that reflect nuances in calligraphic styles, period-specific variations, and visual distinctions among variant forms. The annotations of the glyphs and character tags are sourced from Oracle Bone Inscription Multi-modal Dataset (OBIMD)~\cite{li2024oracle}. In summary, this dataset consists of 17,049 inscriptions from 5,446 oracle bone fragments, including 35 representative rejoining cases that simulate real-world fracture scenarios for tasks such as textual understanding and reconstruction.
+%duanS1old5
+The proposed dataset is constructed based on the OBIs from multiple sources. It contains the images, sentences, tags to comprehensively represent the various modalities of the OBIs. The images of all the oracle bones are directly sourced from Oracle Bone Inscription Collection \cite{jgwhj} and Yinxu Huayuanzhuang East Oracle Bones \cite{jhuayuanzhuangdong}. These collections represent some of the most comprehensive sets of scientifically excavated oracle bones. The rejoining cases of the fragments are mainly collected from reliable online platforms, including the Pre-Qin History Research Workshop \citep{xianqin} and Zuiyu Lianzhu \citep{zylz} with manual annotations. OBID-ACR employs two granular labelling schemes, namely the primary-character and secondary-character tags, to represent oracle characters and their associated handwritten images. The primary-character tag captures the main semantic information and displays the most commonly occurring glyphic image. The secondary-character tag provides a more detailed representation of character usage and semantics, incorporating images that reflect nuances in calligraphic styles, period-specific variations, and visual distinctions among variant forms. The annotations of the glyphs and character tags are sourced from Oracle Bone Inscription Multi-modal Dataset (OBIMD)~\cite{li2024oracle}. In summary, this dataset consists of 17,049 inscriptions from 5,446 oracle bone fragments, including 35 representative rejoining cases that simulate real-world fracture scenarios for tasks such as textual understanding and reconstruction.
 
-The task of bone-level sentence association prediction can be formulated as a binary classification problem. Given two sentences, if an AI model can effectively predict whether the source fragments of the two sentences are directly from the same bone, it can greatly improve the performance of the oracle bone rejoining tasks rather than relying on the edges alone. As a result, based on the newly proposed OBID-ACR dataset, a bone-level association benchmark dataset is constructed. In this benchmark, positive samples consist of genuine associated fragment inscription pairs, and negative samples are randomly sampled from different fragments to ensure data representativeness and diversity. Each OBI sentence in the paired samples contains at least two valid characters. And each character is annotated with both primary-character and secondary-character tags to convey information at different levels of granularity.
+%duanS1old6
+The task of bone-level sentence association prediction can be formulated as a binary classification problem. The task is to determine whether the source fragments of two sentences originate from the same oracle bone. By enabling accurate prediction through AI-based methods, oracle bone rejoining can be greatly enhanced, extending beyond approaches that rely solely on fragment edges. As a result, based on the newly proposed OBID-ACR dataset, a bone-level association benchmark dataset is constructed. In this benchmark, positive samples consist of genuine associated fragment inscription pairs, and negative samples are randomly sampled from different fragments to ensure data representativeness and diversity. Each OBI sentence in the paired samples contains at least two valid characters. And each character is annotated with both primary-character and secondary-character tags to convey information at different levels of granularity.
 
-Building on this benchmark, we propose a model that combines semantic and glyphic information for more effective oracle bone fragment association. Over the years, numerous methods have been proposed to predict contextual relevance \cite{yang2016hierarchical,sun2022sentence}. However, most of which depend only on semantic information, neglecting other valuable information such as variant characters, layout, and glyphic details. Therefore, a benchmark sentence classification model for oracle bone fragment association, named Glyphic-Semantic Siamese BiLSTM (GSSBL) is proposed. This method integrates glyphic and semantic features through a parameter-sharing dual-tower architecture to generate fused sentence embeddings. Each tower has a single-layer BiLSTM. One processes glyphic embeddings, while the other processes semantic embeddings. It can be configured to use either primary-character or secondary-character tags to handle character information at different levels of granularity. When using secondary-character tags, a contrastive learning module is employed to construct more discriminative glyphic character embeddings. Extensive experiments were conducted using representative sentence representation methods as baselines, and ablation studies were designed to verify the contribution of each module within the architecture. The results show that GSSBL consistently outperforms existing approaches measuring using the evaluation metrics. Furthermore, even when fragments are not spatially adjacent, the model can accurately determine whether their inscriptions originate from the same oracle bone fragment based solely on contextual content. Hence, GSSBL can serve as a benchmark method for oracle bone fragment association tasks, highlighting the critical role of multi-modal information in identifying fragment associations.
+%duanS1old7
+%2次
+%han_v9done: we propose Glyphic-Semantic Siamese BiLSTM (GSSBL) -> we propose a novel method named Glyphic-Semantic Siamese BiLSTM (GSSBL)
+%han_v9wait: 所有正文面的Section 不要 写 Section 3.6 这种 要用自带的reference 方法 自己生成相应的序号
+%wtz: 老师现在还没确定下最终稿，所以没统一改，有的是之前的提交版本的，所以有
+Building on this benchmark, we propose a novel method named Glyphic-Semantic Siamese BiLSTM (GSSBL). The proposed method integrates semantic and glyphic information for bone-level association prediction. Unlike previous methods that rely solely on semantic features \cite{yang2016hierarchical,sun2022sentence}, GSSBL fuses glyphic and semantic embeddings via a parameter-sharing dual-tower architecture, with each tower using a single-layer BiLSTM. The proposed method utilises character embeddings derived from sentences annotated with secondary-character tags, while the primary-character tags serve as supervisory signals in contrastive learning to refine the glyph representations of secondary-character tags. In this framework, secondary-character tags associated with the same primary-character tag are defined as positive samples. Extensive experiments have been conducted comparing with previous sentence embedding baselines. The results suggest the proposed methods shows competitive performance. The results suggest that the association scores are highly informative in modelling the association between sentence pairs. Furthermore, the case study in Section~\ref{sec:case} shows that even non-adjacent fragments, which are from the same bone, are assigned a high association score. Therefore, GSSBL can serve as an auxiliary tool for experts in oracle bone rejoining and provide new insights into OBI research.
 
+%han_done_v10: Furthermore, it can be used to support downstream tasks such as bone-level sentence association prediction and semantic reconstruction. 这个删了
+%duanS1old8
 The contributions of this paper are three-fold.
 \begin{enumerate}
-    \item We present the first publicly available dataset specifically created for bone-level association for OBI sentences. The proposed dataset consists of multiple modalities of OBIs to capture the complex characteristics of OBI sentences. By focusing on the bone-level OBI sentence association, this dataset fills a critical gap in existing resources and is expected to facilitate the research on oracle bone rejoining and OBI interpretation. Furthermore, it can be used to support downstream tasks such as bone-level sentence association prediction and semantic reconstruction.
-    
-    \item We conduct empirical study on state-of-the-art methods on the task of bone-level association prediction. We formulate this problem as a binary classification task, where the objective is to determine whether a given pair of OBI sentences from two different fragments originate from the same original piece.
-    
-    \item We introduce a novel multi-model method as a benchmark method for this problem. The proposed method is a multi-model strategy that employs the contextual sentence and glyphic image of each group to effectively predict the association between two sentences.
+    \item We present the first publicly available dataset specifically created for bone-level association for OBI sentences. The proposed dataset consists of multiple modalities of OBIs to capture the complex characteristics of OBI sentences. By focusing on the bone-level OBI sentence association, this dataset fills a critical gap in existing resources and is expected to facilitate the research on oracle bone rejoining and OBI interpretation. %Furthermore, it can be used to support downstream tasks such as bone-level sentence association prediction and semantic reconstruction.
+
+    %han_done_v10: original bone -> bone 因为你之前以前有一个 originate了 这里再加一个original就很重复
+    \item We conduct empirical study on state-of-the-art methods on the task of bone-level association prediction. We formulate this problem as a binary classification task, where the objective is to determine whether a given pair of OBI sentences from two different fragments originate from the same bone.
+
+    %han_done_v10: 我把后面的一个  a multi-model strategy 删了，因为前面已经提过了
+    \item We introduce a novel multi-modal method as a benchmark method for this problem. The proposed method employs the contextual sentence and glyphic image of each group to effectively predict the association between two sentences.
 \end{enumerate}
 
 \section{Methods}\label{sec_method}
 
-This study focuses on the fragment association prediction problem, a research direction of significant academic value. It addresses the challenges of fragment rejoining and contextual understanding. Previous studies lack structured datasets that integrate both semantic and glyphic information \cite{zhang2022data,webNDC,webYQWY}, limiting the development of AI methods for this task. To fill this gap, OBID-ACR is proposed. To capture rich semantic content and glyphic features, it consists of glyph images and OBIs, as well as primary-character and secondary-character tags. Based on OBID-ACR, the benchmark algorithm GSSBL is proposed, which integrates semantic and glyphic features of oracle characters and processes the information at different levels of granularity. This work provides a reference for future studies and demonstrates the critical role of multi-modal information in oracle bone fragment association tasks. 
-
+%duanS2old1
+%han_done_v10: to fill this gap -> To address this issue 还有最后的删了，没啥用,还有其他小修改懒得写了
+This study focuses on the fragment association prediction problem, a research direction of significant academic value. It addresses the challenges of fragment rejoining and contextual understanding. Previous studies lack structured datasets that integrate both semantic and glyphic information \cite{zhang2022data,webNDC,webYQWY}, limiting the development of AI-based methods for this task. To address this issue, OBID-ACR is proposed. To capture rich semantic content and glyphic features, it consists of glyph images and OBI sentences, as well as primary-character and secondary-character tags for the characters. Based on OBID-ACR, a benchmark algorithm GSSBL is proposed, which integrates semantic and glyphic features of oracle characters and processes the information at different levels of granularity. Specifically, GSSBL takes sentences annotated with secondary-character tags as input, while primary-character tags are only used to supervise contrastive learning. %This work provides a reference for future studies and demonstrates the critical role of multi-modal information in oracle bone fragment association tasks. 
 
 \subsection{Problem Formulation}
 
-\textbf{Fragment Association Prediction Problem}:
+%duanS2.1old1
+\textbf{Fragment Association Prediction Problem}: The task is to predict whether two OBI sentences come from the same bone.Given a pair of OBI sentences \( S_1 \) and \( S_2 \), along with their corresponding fragment association label \(\gamma\), the task aims to determine whether the two sentences originate from the same oracle bone fragment. This judgement is made based on sentence embeddings, thereby enabling the modelling and prediction of association relationships between oracle bone fragments.
 
-The task is to predict whether two OBI sentences come from the same bone. Given a pair of OBI sentences \( S_1, S_2 \) and their corresponding  fragment association label \(\gamma\), the task aims to determine, based on sentence-level embeddings, whether the pair of OBI sentences originate from the same oracle bone fragment, thereby achieving modelling and prediction of the association relationships between oracle bone fragments.
 
-The fragment association prediction problem consists of two steps. First, sentence embeddings are constructed using pre-trained character embeddings. Second, a discriminative score is computed based on the obtained sentence embeddings to determine whether the given pair of OBI sentences originate from the same oracle bone. This score is then used to predict associations between oracle bone fragments. Specifically, the inputs are two OBI texts defined as  
+%duanS2.1old2
+The fragment association prediction problem consists of two steps. First, sentence embeddings are constructed using semantic embeddings and glyphic embeddings of characters. Second, an association score is computed based on the obtained sentence embeddings to determine whether the given pair of OBI sentences originate from the same oracle bone. This score is then used to predict associations between oracle bone fragments. Specifically, the inputs are two OBI sentences defined as  
+%gongshiold1
 \begin{equation} \label{eq:inputs}
 S_1 = (c_1^1, c_2^1, \dots, c_{n_1}^1), \quad S_2 = (c_1^2, c_2^2, \dots, c_{n_2}^2),
 \end{equation}
-where each text consists of a sequence of oracle bone characters, with characters represented as primary-character tags or secondary-character tags. The label $\gamma \in \{0,1\}$ indicates whether the two inscriptions originate from fragments of the same complete oracle bone, where $\gamma = 1$ denotes that both fragments come from the same bone, and $\gamma = 0$ denotes they come from different bones. The objective is to learn a discriminative function  
+where each text consists of a sequence of oracle bone characters, which are represented by secondary-character tags. The label $\gamma \in \{0,1\}$ indicates whether the two inscriptions originate from fragments of the same complete oracle bone, where $\gamma = 1$ denotes that both fragments come from the same bone, and $\gamma = 0$ denotes they come from different bones. The objective is to learn a discriminative function  
+%gongshiold2
 \begin{equation} \label{eq:discriminative_function}
 f(S_1, S_2) \to y,
 \end{equation}  
@@ -203,8 +227,68 @@ that determines the fragment association of the inscription text pair based on s
 
 \subsection{Dataset Details}
 
-In this work, we propose OBID-ACR. OBID-ACR is created to preserve the authentic contextual structure of divinatory texts as well as the diversity of variant character forms. Moreover, it integrates rigorously validated oracle bone joins compiled by leading experts, thereby providing reliable and contextually grounded references for scholarly research. The dataset has been made to be publicly accessible \footnote{\url{https://zenodo.org/records/14882488}}. 
+%duanS2.2old1
+In this work, we propose OBID-ACR, a dataset designed to preserve the authentic contextual structure of divinatory texts as well as the diversity of variant character forms. Moreover, it integrates rigorously validated oracle bone joins compiled by leading experts, providing reliable and contextually grounded references for scholarly research. The dataset is publicly accessible \footnote{\url{https://zenodo.org/records/14882488}}. 
 
+%duanS2.2old2
+%han_v9done:  appropriately grouped ->  appropriately annoated 
+%han_v9done: 全文中只要你干的事情都是一般现在时 这一段的里面 的was 改成 is其他段落只要不是以前别的算法的事情都用 一般现在时就行
+%han_v10done:  changes in usage 这纯中文 我现在有个问题。是随着时间改变 那就用 The glyph of a character evolves with changes in historical usage 如果是 同一时间段都有区别那就是 he glyph of a character varies with its contextual usage 我现在默认改成第二种了，最好这个有个引用
+%第二种更符合事实
+A major difference between OBI and modern Chinese language lies in the existence of glyphic variants \cite{2007082726.nh}. The glyph of a character varies with its contextual usage \cite{AL:10152687-200605-201307220039-201307220039-1-40}, thereby containing valuable semantic and contextual information. Yet, these variants are often neglected in rejoining models, resulting in a loss of critical information. To address this, our dataset consists of two-tier tags for each character. The first tier is a coarse-grained primary-character tag, while the second tier is a fine-grained secondary-character tag. For each oracle bone character, its interpretation is determined by the primary-character tag, while the secondary-character tag is used to distinguish differences in writing styles or variant forms. This dual-tagging strategy ensures that characters with the same semantic identity but different graphic appearances are appropriately annotated, facilitating both semantic-level analysis and style-level variation studies. Additionally, a handwritten grey-scale image is assigned to each primary-character and secondary-character tag. This approach is used to avoid the effects of erosion and other forms of damage on the uniformity of the tags, ensuring that the images faithfully reflect the original writing style rather than being cropped.
+
+%duanS2.2old3
+%han_v9done: 一般现在时
+OBIs are collected from fragments bearing multiple inscriptions and from verified rejoining cases. Specifically, inscriptions from oracle bone fragments containing multiple inscriptions are collected from Oracle Bone Inscription Collection \cite{jgwhj} and Yinxu Huayuanzhuang East Oracle Bones \cite{jhuayuanzhuangdong}. These inscriptions contain abundant contextual information, making them well-suited for learning contextual connections across broken fragments. Our annotation work is conducted under the guidance of three experts specialising in palaeography. The team also includes 20 graduate students majoring in Cultural Relics and Museology and 20 undergraduate students in Computer Science. The annotation process is carried out in three stages. First, undergraduates with a basic knowledge of oracle bone script perform preliminary annotations. Second, graduate students trained in professional oracle bone studies revise these annotations. Third, the experts conduct a thorough review. All students receive training related to the annotation tasks prior to participation to ensure quality. The three palaeography advisors are seasoned scholars with extensive experience in oracle bone studies.
+
+%duanS2.2old4
+%4
+This dataset also consists of annotated oracle bone rejoining instances collected from real-world cases. These instances can serve as independent test cases. The cases are manually collected from authoritative reference books such as the Catalogue of Oracle Bone Rejoinings \cite{jgwzhuiheji} and Catalogue of Oracle Bone Rejoinings Volume-II \cite{jgwzhuihexvji}, from academic articles focused on oracle bone rejoining (e.g., \cite{zhuiheyang,zhuihesun}), and from online OBI platforms including the Pre-Qin History Research Workshop \citep{xianqin} and Zuiyu Lianzhu \citep{zylz}. The annotation process of rejoining instances followed two criteria. First, fragments with multiple inscriptions are initially considered for annotation. Second, oracle bone inscription sentences must contain at least two characters to be recorded. Based on the aforementioned criteria, 35 rejoining cases are recorded, these instances reflect authentic fracture types, involve multiple fragments, and preserve relatively complete contextual information within the divinatory texts.
+
+%duanS2.2new1
+%han_done_v10. 这一段和上一段合并了，你写的太长了，信息量少，没必要。
+%The annotation process of rejoining instances followed two criteria. First, only fragments with multiple inscriptions were initially considered for annotation. Based on this criterion, the annotated fragments that could be rejoined are recorded, resulting in 35 groups of rejoining instances. Second, oracle bone inscription sentences must contain at least two characters to be included in the process. Sentences shorter than this provide insufficient textual information.
+
+%duanS2.2new3
+%han_v9done: 这里的分类不用大写
+These 35 rejoining instances are categorised according to four criteria, as detailed in Table~\ref{jieshi}. The first criterion is edge adjacency. Cases in which fragments are contiguous are labelled as direct, while others are labelled as remote. The second criterion is inscription integrity. Cases where the inscription is cut by the fracture are labelled as damaged, and those without such damage are labelled as undamaged. The third criterion is character division. This refers to whether the characters are intersected by the fracture. Cases are labelled as separated or unseparated accordingly. Character division is only applied to rejoining cases where inscription integrity is damaged. The fourth criterion is piece count. Cases are classified as two-piece or multi-piece.
+
+%duanS2.2new2%
+%han_v9done: The reason for this small sample is threefold -> The reasons for the small sample sizes are threefold.
+%han_v9done: This guarantees the accuracy of the information while excluding controversial cases -> As numerous rejoining cases are subject to dispute, excluding them ensures that the proposed dataset attains greater consistency and is more amenable to scholarly investigation.
+These 35 rejoining instances represent only a small portion of all known cases. According to a publication by the Chinese Academy of Social Sciences\footnote{\url{http://cass.cn/keyandongtai/shekejijin/202404/t20240411_5745811.shtml}}, more than 7,000 conjugation instances have been identified to date. Our current dataset represents approximately 0.5\% of these instances, which highlights the limitations of the currently available annotations. The reasons for the small sample sizes are threefold. First, only a few rejoining instances are initially available for selection. This situation is due to the limited scope of our annotations. Second, the selected instances need to be widely recognised in the field of Oracle bone studies. As numerous rejoining cases are subject to dispute, excluding them ensures that the proposed dataset achieves greater consistency and remains amenable to scholarly investigation. Third, only rejoining instances with sufficient textual information are included. The vast majority of rejoining fragments contain no inscriptions or only one or two characters, making them unsuitable as valid textual corpora. Future work will focus on expanding both the scale and coverage of annotated rejoining instances to better support AI-based methods training and validation.
+
+%biaoold2
+%biaoold3
+\begin{table}[!htbp]
+    \centering
+    \caption{Attribute Categories of Rejoining Cases\label{jieshi}}
+    \begin{tabular}{cccc}
+        \toprule
+        \shortstack{\textbf{Attribute Category}} & \shortstack{\textbf{Sub-attribute}} & \textbf{Count} & \textbf{Mutually Exclusive} \\
+        \midrule
+        \multirow{2}{*}{Edge adjacency} & direct & 31 & \multirow{2}{*}{No} \\
+        & remote & 6 & \\
+        \midrule
+        \multirow{2}{*}{Inscription integrity} & damaged & 11 & \multirow{2}{*}{Yes} \\
+        & undamaged & 24 & \\
+        \midrule
+        \multirow{2}{*}{Character division} & separated & 10 & \multirow{2}{*}{No} \\
+        & unseparated & 7 & \\
+        \midrule
+        \multirow{2}{*}{Piece count} & two-piece & 30 & \multirow{2}{*}{Yes} \\
+        & multi-piece & 5 & \\
+        \toprule
+    \end{tabular}
+    \begin{flushright}
+        \footnotesize Character Division applies only to rejoining cases in which the inscriptions are damaged.
+    \end{flushright}
+\end{table}
+
+%duanS2.2old5
+Totally, the compiled dataset consists of divinatory texts and corresponding rubbing and facsimile images from 5,446 oracle bone fragments, comprising a total of 17,049 individual inscriptions. Among them, 35 manually collected rejoining cases are identified, involving a total of 210 inscriptions. The detailed composition of the dataset is summarised in Table~\ref{tabA}, and representative examples are illustrated in Figure~\ref{exmp}. The sentence length distribution of the inscriptions in the dataset is shown in Figure~\ref{jvchang}. The average sentence length is 5.11 characters, with a median of 4 characters. Overall, inscriptions are relatively short and mostly sequential, meaning they generally do not span multiple bone fragments.
+
+%biaoold1
 \begin{table}[!htbp]
     \centering
     \caption{Composition of the OBID-ACR Dataset.\label{tabA}}
@@ -219,347 +303,829 @@ In this work, we propose OBID-ACR. OBID-ACR is created to preserve the authentic
     \end{tabular}
 \end{table}
 
+%tuold1
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.9\linewidth]{pic/exmp.png} 
+\includegraphics[width=1\linewidth]{pic/exmp.png} 
 \caption{Examples of oracle bone instances included in OBID-ACR. The top shows the rubbing images of the instances, while the bottom displays the original OBIs on the bone fragment. Instance (A) is a rejoined oracle bone instance, formed by rejoining two oracle bone fragments. It contains two inscriptions, one of which has a character split by the fracture edge across the two fragments. This instance is classified as damaged in Broken Type and as separated in Separation. Instance (B) is an oracle bone with multiple inscriptions, meaning that two inscriptions coexist on a single fragment and form a contextual relationship.\label{exmp}}
 \end{figure}   
-\unskip
 
-\begin{table}[!htbp]
+%tunew2
+\begin{figure}[!htbp]
     \centering
-    \caption{Attributes of Rejoining Instances.\label{AttrRej1}}
-    \begin{tabular}{ccp{8cm}}
-        \toprule
-        \shortstack{\textbf{Attribute}\\\textbf{Name}}	& \shortstack{\textbf{Attribute}\\\textbf{Type}} & \textbf{Explanation}\\
-        \toprule
-        Broken Type & Fragment  & It represents whether the fracture edge passes through the textual sequence of the OBI within a rejoining instance, thereby dividing the inscription across multiple fragments. It is categorised as either damaged or undamaged. \newline
-        \textbf{undamaged:} the fracture edges of the oracle bone fragments do not intersect with the inscriptions, meaning the inscription texts remain intact and are not separated. Each instance will have only one undamaged label. \newline
-        \textbf{damaged:} the fractures in the original oracle bones cause at least one oracle inscription to split across different fragments. Fractures impacting oracle characters are annotated with the Separation label. An instance may have multiple damaged labels.\\
-        \midrule
-        Separation & Character & A classification label indicating the impact of the fracture edges on the oracle bone characters, including unseparated and separated categories. Since the fracture edges may split the original OBIs multiple times, a damaged rejoining instance may have multiple Separation labels. \newline
-        \textbf{unseparated:} the fracture edge occurs between this oracle character and the next character in the semantic sequence, splitting the inscription but not splitting the character itself. \newline
-        \textbf{separated:} the fracture edge divides this oracle character across multiple oracle bone fragments.\\
-        \toprule
-    \end{tabular}
-\end{table}
-
-\begin{table}[!htbp]
-    \centering
-    \caption{The Number of Attribute Labels in Rejoining Instances.\label{tab1}}
-    \begin{tabular}{ccccc}
-        \toprule
-        \textbf{Attribute}	& undamaged&  damaged  &  unseparated   & separated\\
-        \toprule
-        \textbf{Number}		& 	24	&   11    &    7    &10 \\
-        \toprule
-    \end{tabular}
-\end{table}
-
-A major difference between OBI and modern Chinese language lies in the existence of glyphic variants \cite{2007082726.nh}. The glyph of a character varies with changes in usage, thereby containing valuable semantic and contextual information. Yet, these variants are often neglected in rejoining models, resulting in a loss of critical information. To address this, our dataset consists of two-tier tags to each character. The first tier is a coarse-grained primary-character tag, while the second tier is a fine-grained secondary-character tag. For each oracle bone character, its interpretation was determined by the primary-character tag, while the secondary-character tag was used to distinguish differences in writing styles or variant forms. This dual-tagging strategy ensures that characters with the same semantic identity but different graphic appearances are appropriately grouped, facilitating both semantic-level analysis and style-level variation studies. Additionally, a handwritten grey-scale image is assigned to each primary-character and secondary-character tag. This approach is used to avoid the effects of erosion and other forms of damage on the uniformity of the tags, ensuring that the images faithfully reflect the original writing style rather than being cropped.
-
-OBIs were collected from fragments bearing multiple inscriptions and from verified rejoining cases. Specifically, inscriptions from oracle bone fragments containing multiple inscriptions are collected from Oracle Bone Inscription Collection \cite{jgwhj} and Yinxu Huayuanzhuang East Oracle Bones \cite{jhuayuanzhuangdong}. These inscriptions contain abundant contextual information, making them well-suited for learning contextual connections across broken fragments.
-
-This dataset consists of the real-world rejoining cases that can be regarded as independent test cases. These manual-collected cases were sourced from authoritative reference books such as the Catalogue of Oracle Bone Rejoinings \cite{jgwzhuihexvji} and Catalogue of Oracle Bone Rejoinings Volume-II \cite{jgwzhuihexvji}, from academic articles focused on rejoining oracle bones (e.g., \cite{zhuiheyang,zhuihesun}), as well as from online OBI platforms the Pre-Qin History Research Workshop \citep{xianqin} and Zuiyu Lianzhu \citep{zylz}. These rejoining cases reflect real-world fracture types, involve multiple fragments, and exhibit relatively complete contextual information within the divinatory texts. The fracture types of the oracle bones were further annotated, and the effects of the fracture points on the continuity and contextual coherence of the divinatory texts were documented. These categorizations are detailed in Table~\ref{AttrRej1}, and the statistical distribution of each category across the rejoining instances is presented in Table~\ref{tab1}.
-
-Totally, the compiled dataset consists of divinatory texts and corresponding rubbing and facsimile images from 5,446 oracle bone fragments, comprising a total of 17,049 individual inscriptions. Among them, 35 manually collected rejoining cases were identified, involving a total of 210 inscriptions. The detailed composition of the dataset is summarised in Table~\ref{tabA}, and representative examples are illustrated in Figure~\ref{exmp}.
-
+    \includegraphics[width = 1\textwidth]{pic/jvchang.png} 
+    \caption{The sentence length distribution of the inscription sentences in OBID-ACR.}\label{jvchang}
+\end{figure} 
 
 \subsection{Methodology}
 
-Our model named GSSBL aims to determine whether a pair of OBI sentences originate from the same bone fragment. GSSBL employs a dual-tower Siamese BiLSTM architecture integrating semantic and glyphic embeddings, enhanced by a contrastive learning module focused on secondary-character glyphic features. It comprises three main components: the character embedding module, the sentence embedding learning module, and the discriminative classification module. The character embedding module includes the semantic character embedding module and the glyphic character embedding module within which the secondary-character glyphic contrastive learning module (SGCLM) operates. The framework of this method is shown in Figure~\ref{model}. The method takes a pair of OBI sentences as input. Semantic features are learned from the textual information by the semantic character embedding module which is introduced in Section~\ref{sec:semantic-embedding}. Glyphic features are learned from the character images by the glyphic character embedding module which is introduced in Section~\ref{sec:glyphic-embedding}. These two types of character embeddings are then aggregated into fused sentence embeddings by the sentence embedding learning module described in Section~\ref{sec:sentence-embedding}, producing a fused representation for the input pair. Finally, the fused embedding is passed to the discriminative classification module presented in Section~\ref{sec:classification} to generate a binary classification result for the fragment association prediction problem.
+%duanS2.3old1
+%han_done_v10: 
+Our model named GSSBL aims to determine whether a pair of OBI sentences originate from the same bone fragment. GSSBL employs a dual-tower Siamese BiLSTM architecture integrating semantic and glyphic embeddings, enhanced by a contrastive learning module focused on secondary-character glyphic features. It comprises three main components: the character embedding module, the sentence embedding learning module, and the classification module. The character embedding module includes the semantic character embedding module and the glyphic character embedding module within which the secondary-character glyphic contrastive learning module (SGCLM) operates. The framework of this method is shown in Figure~\ref{model}. The method takes a pair of OBI sentences annotated with secondary-character tags as input. Semantic features are learned from the textual information by the semantic character embedding module which is introduced in Section~\ref{sec:semantic-embedding}. Glyphic features are learned from the character images by the glyphic character embedding module which is introduced in Section~\ref{sec:glyphic-embedding}. These two types of character embeddings are then aggregated into fused sentence embeddings by the sentence embedding learning module described in Section~\ref{sec:sentence-embedding}, producing a final embedding for the sentence pair. Finally, the final embedding of the sentence pair is passed to the classification module presented in Section~\ref{sec:classification} to generate a binary classification result for the fragment association prediction problem.
 
-
+%tuold2
+%han_v10done: 这里面注意的是需要把缩写都在caption里面提一下，还有图片我刚意识到，你只有编码 没有图片啊，要把图片也有所体现
 \begin{figure}[!htbp]
 \centering
-\includegraphics[height=0.8\textheight]{pic/model3.png} 
-\caption{The framework of GSSBL. Specifically, the semantic character embedding module in Section~\ref{sec:semantic-embedding} and the glyphic character embedding module in Section~\ref{sec:glyphic-embedding} are submodules of the character embedding module, while the SGCLM forms part of the glyphic character embedding module. By default, the SGCLM is employed when the model uses secondary-character tag inputs. The sentence embedding learning module described in Section~\ref{sec:sentence-embedding} is used to fuse sentence embeddings. The discriminative classification module presented in Section~\ref{sec:classification} provides the final prediction.
+\includegraphics[width=1\textwidth]{pic/model.png} 
+\caption{The framework of GSSBL. Specifically, the semantic character embedding module in Section~\ref{sec:semantic-embedding} and the glyphic character embedding module in Section~\ref{sec:glyphic-embedding} are submodules of the character embedding module. The glyphic character embedding module further includes a subcomponent, the secondary-character glyphic contrastive learning module (SGCLM). The sentence embedding learning module described in Section~\ref{sec:sentence-embedding} is used to fuse sentence embeddings. The classification module presented in Section~\ref{sec:classification} provides the final prediction. Specifically, \(\boldsymbol{h}^{\text{G}}\) denotes the sentence glyphic embedding, and \(\boldsymbol{h}^{\text{S}}\) denotes the sentence semantic embedding. \(\boldsymbol{h}^{\text{fused}}\) represents the fused sentence embedding obtained by the weighted summation of \(\boldsymbol{h}^{\text{G}}\) and \(\boldsymbol{h}^{\text{S}}\). And \(\boldsymbol{h}^{\text{pair}}\) denotes the final embedding of the sentence pair.
 }
 \label{model}
 \end{figure}
 
-
-
 \subsubsection{Semantic Character Embedding Module}\label{sec:semantic-embedding}
 
-The semantic character embedding module maps oracle bone characters into fixed-dimensional semantic vectors. These vectors, derived from primary or secondary characters, are representations that capture semantic features. They serve as the basis for similarity-based matching and identification of OBI fragments from the same bone.
+%duanS2.3.1old1
+%2次
+The semantic character embedding module maps oracle bone characters into fixed-dimensional semantic vectors. This module adopts Skip-Gram with Negative Sampling (SGNS) from Word2Vec \cite{mikolov2013distributed} to learn meaningful character representations that capture semantic features. These character semantic embeddings are fed into the Sentence Embedding Learning Module as input.
 
-This module adopts Skip-Gram with Negative Sampling (SGNS)~\cite{mikolov2013distributed}. It learns distributed representations by predicting context characters given a centre character. This approach effectively captures semantic relationships even under limited and sparse training data. Independent embedding sets are trained for main and sub characters to capture fine-grained semantic distinctions. After training, the resulting embeddings are frozen for downstream tasks to ensure semantic consistency and stability.
+%duanS2.3.1old2
+%2次
+%han_v9done：这里提一下secondary tag as input
+The proposed module takes sentences annotated with tags as input and learns their character semantic embeddings based on semantic relations according to secondary-character tags. The resulting character semantic embeddings are frozen for downstream tasks to maintain semantic consistency and stability. A detailed explanation of the rationale for using SGNS and its underlying principles is discussed in Section S1 in the Supplementary Materials.
 
-The choice of SGNS is motivated by its capacity to infer the meaning of a centre character from its surrounding context \cite{wang2020skipgram}. In OBIs, many characters are damaged or missing due to erosion or fragmentation and are represented using placeholder symbols that carry no semantic information. This makes it essential to rely on context to reconstruct semantic meaning. SGNS is well-suited to this setting, as it extracts semantic signals from available neighbouring characters, mitigating the effect of semantic sparsity caused by unknown symbols.
+%duanS2.3.1old3
+%duanS2.3.1old4
+%moved to Section S1
 
-
-Negative sampling further improves embedding discriminability by drawing noise characters from the overall character distribution. Since oracle bone texts contain many high-frequency functional characters, negative sampling helps reduce their over-representation, encouraging the model to focus on low-frequency but semantically distinctive characters. This results in more robust and informative character embeddings.
-
-The semantic character embedding module works in parallel with the glyphic character embedding module. Their outputs are later fused to enhance the system’s performance in oracle bone fragment association prediction.
+%duanS2.3.1old5
+%han_v9done: 这段直接删了吧没用
 
 \subsubsection{Glyphic Character Embedding Module}\label{sec:glyphic-embedding}
 
-This module is responsible for extracting glyphic features from single-channel gray-scale handwritten oracle bone character images. It encodes the input images into fixed-dimensional vector representations that capture the structural and stylistic features of the glyphs, thereby improving the accuracy of OBI fragment association judgment. Input images are uniformly resized to \(256 \times 256\) pixels, and the model outputs 512-dimensional latent vectors as the glyphic embeddings. Additionally when the GSSBL operates with the secondary-character tag, the SGCLM is employed to enhance the representation of glyphic embedding for the secondary-character tag through contrastive learning.
+%duanS2.3.2old1
+%2次
+%han_v9done: , SGCLM  是什么的缩写你从来没给过！！！
+%这个缩写在S3.3的第一段出现过
+The glyphic character embedding module is employed to extract glyphic features from single-channel gray-scale images of handwritten oracle bone characters. The module adopts a modified Variational Autoencoder (VAE) architecture \cite{kingma2013auto} to learn glyphic embeddings for the images of the characters. Subsequently, the secondary-character glyphic contrastive learning module (SGCLM) is used to further enhance these character glyphic embeddings through contrastive learning, by using primary-character tags as supervisory information.
 
-The module adopts a modified Variational Autoencoder (VAE) architecture \cite{kingma2013auto} to learn glyphic representation. A VAE consists of an encoder that learns latent representations and a decoder that reconstructs the original images from them. The reconstruction loss is used to evaluate the model's performance. The encoder comprises five convolutional layers, while the decoder comprises five transposed convolutional layers. The encoder extracts multi-scale features from the input single-channel gray-scale images, using convolutional kernels \cite{chen2020evolving} of size \(4 \times 4\), stride two, and padding one. These operations gradually reduce spatial dimensions while increasing the number of channels, finally mapping to a 512-dimensional latent vector. The latent space is represented by the mean vector \(\boldsymbol{\mu}\) and the log-variance vector \(\boldsymbol{\sigma}\). 
+%duanS2.3.2old2
+%duanS2.3.2old3
+%duanS2.3.2old4
+%moved to Section S2
 
-The latent space is parameterised to the mean vector \(\boldsymbol{\mu}\) and the log-variance vector \(\boldsymbol{\sigma}\), which are obtained by encoding the input \(\boldsymbol{x}\):
-\begin{equation}
-\boldsymbol{\mu}, \boldsymbol{\sigma} = \mathrm{Encoder}(\boldsymbol{x}). 
-\end{equation}
+%duanS2.3.2old5
+%2 Revised fifth paragraph in Section 2.3.2, which has now become the new second paragraph: 
+%han_v9done：这里Variational Autoencoder (VAE)缩写了两次？上一段已经出现过了。
+%han_done_v10: 少说accurate 这种词你想说它有用就说有用但是不能说accurate 改成performance了，这段我重构了
+This module employs a VAE to learn character glyphic embeddings from input single-channel, grayscale images of oracle bone characters. Details of the VAE architecture, training procedure, and loss functions are discussed in Section S2 in the Supplementary Materials. For each character, the VAE model encodes the corresponding image into a fixed-dimensional representation that capture the structural and stylistic features of the glyphs to facilitate the association prediction task.
 
-Based on \(\boldsymbol{\mu}\) and \(\boldsymbol{\sigma}\), the latent vector \(\boldsymbol{z}\) is sampled using the reparameterization trick to enable gradient backpropagation:
-\begin{equation}
-\boldsymbol{z} = \boldsymbol{\mu} + \boldsymbol{\epsilon} \odot \exp\left(\frac{1}{2} \log \boldsymbol{\sigma}^2\right), \quad \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}), 
-\end{equation}
-where \(\boldsymbol{\epsilon}\) is drawn from a standard normal distribution. This latent vector \(\boldsymbol{z}\) serves as the learned glyphic embedding that captures the structural and stylistic features of the input character. The decoder then reconstructs the input \(\hat{\boldsymbol{x}}\) from \(\boldsymbol{z}\), and the model is trained by minimizing the following loss function:
-\begin{equation}
-\mathcal{L} = \mathbb{E}_{q_\phi(\boldsymbol{z}|\boldsymbol{x})} \left[ \|\boldsymbol{x} - \hat{\boldsymbol{x}}\|_1 \right] + \beta \cdot D_{\mathrm{KL}}\left(q_\phi(\boldsymbol{z}|\boldsymbol{x}) \parallel p(\boldsymbol{z})\right), 
-\end{equation}
-where the reconstruction loss employs the \(L_1\) norm to better capture image edges and fine details, thereby enhancing reconstruction quality. And the KL divergence term acts as a regulariser on the latent space distribution, with the hyperparameter \(\beta\) controlling the trade-off between reconstruction fidelity and latent space regularization. Training employs Xavier~\cite{glorot2010understanding} initialization and gradient clipping techniques to ensure numerical stability. Data preprocessing includes resizing, gray-scale conversion, and slight random rotation augmentations, enhancing the model’s adaptability to handwriting style variations.
-
-This module outputs 512-dimensional glyphic embeddings. These embeddings are fused with semantic embeddings in subsequent stages to support oracle bone text fragment association. This approach fully leverages both glyphic and semantic information to improve discrimination accuracy. 
+%It encodes the images into fixed-dimensional vector representations that capture the structural and stylistic features of the glyphs, thereby improving the performance of OBI fragment association prediction. This module learns a character glyphic embedding for each image. These embeddings are fused with character semantic embeddings in subsequent stages to support oracle bone text fragment association.
 
 %\subsubsection{Secondary-character Glyph Contrastive Learning Module}
+%duanS2.3.2old6
+%3 Revised sixth paragraph in Section 2.3.2, which has now become the new third paragraph: 
+%这里还是说一下一级二级吧，不然体现不出我们对一二级的使用啊，尤其是一级作为指导
 
-SGCLM enhances the distinctiveness of glyphic embeddings for OBIs. It achieves this by applying contrastive learning to secondary-character glyphic vectors that share the same primary-character tag, encouraging these embeddings to cluster more tightly in the vector space. This process improves the expressive power of glyphic features. The optimized secondary-character glyphic embeddings are then fed into the subsequent sentence embedding generation module, helping the overall model achieve better discriminative performance.
+%han_v9done: he optimised glyphic embeddings of secondary-character tags are then fed into the subsequent sentence embedding learning module, to improve the overall model achieve better discriminative performance. 这些直接删了，没用别说这个在后面是怎么用的 这部分应该在2.3的总览提过了 一段只说一个事情
 
-The module employs a Multi-Layer Perceptron (MLP)~\cite{rumelhart1986learning} as the mapping network. It maps the input 512-dimensional glyphic features into a unified 512-dimensional embedding space. The MLP consists of two feedforward layers: the first layer has a 1024-dimensional hidden layer with ReLU activation, and the second layer outputs the final 512-dimensional vector representation. 
+%han_v10_done: 这段我重构了
+%SGCLM refines the glyphic embeddings of secondary-character tags, aligning those that share the same primary-character tag. It takes the character glyphic embeddings produced by the VAE as input, while contrastive learning is applied to these character glyphic embeddings to encourage tighter clustering in the latent space. This process improves the expressive power of glyphic features. Details of the SGCLM training procedure, data processing, and the details of constrastive learning are discussed in Section S3 in the Supplementary Materials. 
+The glyphic embeddings of the characters are further refined through contrastive learning in SGCLM. In this process, the character glyphic embeddings produced by the VAE serve as inputs, and characters sharing the same primary tag are treated as positive samples, whereas others are treated as negative samples. Details of the SGCLM training procedure, data processing, and the details of constrastive learning are discussed in Section S3 in the Supplementary Materials. 
 
+%han_v9done, 这是啥？你在上一段 你不是说 细节都在都是在Section S3了？为啥这里又说？
 
-The training objective of our model is to learn discriminative glyphic embeddings through contrastive learning. During training, the module optimizes the embeddings using the InfoNCE contrastive loss \cite{oord2018representation} function by mining positive and negative sample pairs. Specifically, given an anchor glyphic embedding, positive samples are glyphic embeddings of secondary-characters from the same primary-character tag, and negative samples are glyphic embeddings from other secondary-characters. The loss function is defined as:
-\begin{equation} \label{eq:contrastive_loss}
-L = - \log \frac{\exp\big(\mathrm{cos}(z_a, z_p) / \tau\big)}{\exp\big(\mathrm{cos}(z_a, z_p) / \tau\big) + \sum_{i=1}^{K} \exp\big(\mathrm{cos}(z_a, z_{n_i}) / \tau\big)},
-\end{equation}
-where \( z_a \), \( z_p \), and \( z_{n_i} \) denote the anchor, positive, and negative embedding vectors respectively, \(\mathrm{cos}(\cdot, \cdot)\) denotes cosine similarity, and \(\tau\) is the temperature hyperparameter.
-
-The sampling strategy for contrastive learning exploits the hierarchical and multimodal structure of OBIs. For each anchor, \( K = 5 \) positive samples are first collected from its secondary-character directory under the same primary-character tag. If these glyph samples are insufficient, additional positives are drawn from other secondary-character directories sharing the same primary-character tag. Negative samples, dynamically set to ten times the number of positives, are drawn from secondary-characters outside the anchor’s primary-character tag. These negatives are ranked by cosine similarity on concatenated glyphic and semantic embeddings to focus on the hardest negatives. Secondary-characters lacking sufficient contrastive pairs are excluded. This approach effectively constructs high-quality contrastive pairs tailored to the data’s structure.
-
-The MLP mapping and contrastive learning collaboratively enhance the consistency and discriminative power of secondary-character glyphic embeddings. After training, all original secondary-character glyphic embeddings are uniformly transformed through the learned MLP, ensuring consistent mapping even for isolated glyphs and improving embedding uniformity. This design avoids parameter explosion. By applying contrastive learning, it reinforces tight clustering among secondary-character tags under the same primary-character tag, thereby enhancing both the discrimination and the generalisation of glyphic representations. The optimized secondary-character glyphic embeddings are saved in JSON format and subsequently used by the sentence embedding learning module to jointly improve the accuracy of OBI fragment association.
-
+%duanS2.3.2old7
+%duanS2.3.2old8
+%duanS2.3.2old9
+%duanS2.3.2old10
+%moved to Section S2
 
 \subsubsection{Sentence Embedding Learning Module}\label{sec:sentence-embedding}
 
-The Weighted Fusion Siamese BiLSTM encodes pairs of OBI sentences into fused embeddings. These embeddings integrate semantic (meaning) and glyphic (shape) information. These sentence embeddings are used for fragment association prediction of these pairs.
+%duanS2.3.3old1
+%han_v9done: 这里描述一下 上面学到的两个embedding是如何作为输入的。
+%han_v10: 还没写完
+%han_done_v10: 你写东西特别罗嗦，好多车轱辘话，同一句话一直说，例如你会写，这个embedding用到下游的分类任务上，你除了这个任务还有别的任务吗？我把这个删了
+%han_done_v10: 你要描述一个东西，要说输入，操作，和输出结果你这顺序全乱了
+%The sentence embedding learning module encodes pairs of OBI sentences into fused sentence embeddings based on the corresponding character embeddings and glyphic embeddings. These fused sentence embeddings integrate semantic and glyphic information. For each annotated sentence, this module retrieves the corresponding character semantic embeddings and character glyphic embeddings learned from the previous modules. These embeddings are formed into two separate sequences, a semantic sequence and a glyphic sequence, which serve as input for fused sentence embedding learning.
+%The sentence embedding learning module takes as input two sequences for each annotated sentence: a semantic sequence and a glyphic sequence, which are constructed from the corresponding character-level semantic and glyphic embeddings learned from the preceding modules. These two sequences are jointly processed to model their contextual correlations, and a fusion mechanism is applied to integrate semantic and glyphic features at the sentence level. The resulting fused representation serves as the sentence embedding, encapsulating both semantic and glyphic information of the OBI sentence pair.
 
-The model adopts a Siamese dual-tower architecture \cite{mueller2016siamese} with a shared Bidirectional Long Short-Term Memory network (BiLSTM)~\cite{graves2005framewise}. It jointly extracts semantic and glyphic sentence embeddings. Specifically, each sentence in the input pair is first mapped by embedding layers into sequences of 512-dimensional semantic and glyphic vectors, respectively. These sequences are then encoded by the shared BiLSTM, which consists of a forward LSTM layer and a backward LSTM layer, each with a hidden size of 256 and an input dimension of 512, to capture contextual information bidirectionally. Ultimately, each sentence obtains both a 512-dimensional semantic sentence embedding and a 512-dimensional glyphic sentence embedding. The BiLSTM outputs two final hidden states—one from the forward and one from the backward LSTM—which are concatenated to form a 512-dimensional sentence representation: 
+This module learns sentence embeddings that integrate both semantic and glyphic information of annotated OBI sentences. Each sentence pair is processed by two Siamese dual-tower systems, one dedicated to the semantic modality and the other to the glyphic modality. In each system, two parallel towers with shared parameters encode the paired sentences within the same modality, producing modality specific sentence embeddings that capture their contextual similarity and distinction. The semantic and glyphic sentence embeddings obtained from the two systems are subsequently fused through a dedicated fusion layer to adaptively integrate information from both modalities.% The resulting fused sentence embedding serves as the module output and is forwarded to the subsequent component for downstream learning.
+
+%duanS2.3.3old2
+%han_v10: 这段系的不清楚，你现在有两个句子，每个句子有字型的和语义的，每个双塔结构是处理一个句子吗？不用改，先把中文描述清楚。按照图应该是两个双塔的结构，一个描述字形  一个描述字义，是这样吗？
+%双塔，一个处理字形、一个处理字义，每个句子都有字型的和语义的字符嵌入，通过塔得到自己的字形、字义句子嵌入，然后是双塔后面的fused部分，最终融合成一个句子对嵌入，投到mlp分类
+%han_v10wait: BiLSTM 有没有在suplimentary material 重写
+%没有
+Each tower within the Siamese dual-tower systems employs a shared parameter Bidirectional Long Short Term Memory (BiLSTM) module to learn sentence embeddings for its respective modality. The network captures both forward and backward contextual dependencies across the sequence of character embeddings, enabling a comprehensive representation of semantic or glyphic information at the sentence level. Then, for each modality, the last hidden state of the forward LSTM \(\boldsymbol{h}_T^{\text{forward}}\) and the last hidden state of the backward LSTM \(\boldsymbol{h}_1^{\text{backward}}\) are concatenated: to form a 512-dimensional sentence embedding: 
 \begin{equation}
-\boldsymbol{h} = \left[\boldsymbol{h}_T^{\text{forward}}, \ \boldsymbol{h}_1^{\text{backward}}\right] \in \mathbb{R}^{512},
+\boldsymbol{h} = \left[\boldsymbol{h}_T^{\text{forward}}, \ \boldsymbol{h}_1^{\text{backward}}\right] \in \mathbb{R}^{512}.
 \end{equation}
-where \(\boldsymbol{h}_T^{\text{forward}}\) denotes the last hidden state of the forward LSTM and \(\boldsymbol{h}_1^{\text{backward}}\) denotes the last hidden state of the backward LSTM (corresponding to the first token in the original sequence).
 
-After encoding, a learnable scalar weight \(\alpha\) is applied to fuse the semantic and glyphic sentence vectors, computed as:
-\begin{equation} \label{eq:fusion}
-\boldsymbol{h}^{\text{fused}} = \alpha \cdot \boldsymbol{h}^{\text{semantic}} + (1-\alpha) \cdot \boldsymbol{h}^{\text{glyphic}},
-\end{equation}
-where \(\boldsymbol{h}^{\text{semantic}}\) and \(\boldsymbol{h}^{\text{glyphic}}\) represent the semantic and glyphic sentence vectors.
+%The model adopts a Siamese dual-tower architecture \cite{mueller2016siamese} with a shared Bidirectional Long Short-Term Memory network (BiLSTM)~\cite{graves2005framewise}. It jointly extracts semantic and glyphic embeddings of sentences. Specifically, each sentence in the input pair is first mapped by embedding layers into sequences of 512-dimensional for semantic and glyphic features, respectively. These sequences are then encoded by the shared BiLSTM, which consists of a forward LSTM layer and a backward LSTM layer, to capture contextual information bidirectionally, as illustrated in Fig.~\ref{bilstm}. Finally, each sentence obtains both a sentence semantic embedding and a sentence glyphic embedding. BiLSTM learns two vectors from the forward and backward LSTMs respectively, specifically the last hidden state of the forward LSTM 
+%gongshiold7
+%\(\boldsymbol{h}_T^{\text{forward}}\) and the last hidden state of the backward LSTM 
+%\(\boldsymbol{h}_1^{\text{backward}}\).  
+%It then concatenates these two vectors to form a 512-dimensional sentence representation: 
+%\begin{equation}
+%\boldsymbol{h} = \left[\boldsymbol{h}_T^{\text{forward}}, \ \boldsymbol{h}_1^{\text{backward}}\right] %\in \mathbb{R}^{512}.
+%\end{equation}
 
-Finally the fused vectors of the two sentences in the pair are concatenated and passed to the discriminative classification module:
+%han_done_v10:删了
+%tunew4
+%\begin{figure}[!htbp]
+%\centering
+%\includegraphics[width=1\textwidth]{pic/bilstm.png} 
+%\caption{Structure of the BiLSTM network employed in the GSSBL model.}
+%\label{bilstm}
+%\end{figure}
+
+%duanS2.3.3old3
+%duanS2.3.3old4
+%3
+%han_v9done: 你这写的什么玩意儿？which is passed to the discriminative classification module: 这之后跟的是分类模型吗？你跟的是个向量！自己读一下自己写的内容！
+%han_v10_done: 我重写了
+The glyphic embedding and semantic embedding of a sentence, learned from the two dedicated Siamese dual-tower modules, are fused to form a comprehensive sentence embedding:
 \begin{equation}
-\boldsymbol{H} = \left[\boldsymbol{h}^{\text{fused}, \text{S}_{1}}, \boldsymbol{h}^{\text{fused}, \text{S}_{2}}\right] \in \mathbb{R}^{1024},
-\end{equation}
-where \(\boldsymbol{h}^{\text{fused}, \text{s1}}\) and \(\boldsymbol{h}^{\text{fused}, \text{s2}}\) correspond to the fused sentence embeddings of the first and second sentences in the pair.
+\boldsymbol{h}^{\text{fused}} = \alpha \cdot \boldsymbol{h}^{\text{S}} + (1-\alpha) \cdot \boldsymbol{h}^{\text{G}},
+\end{equation} 
+where \(\boldsymbol{h}^{\text{S}}\) denotes the semantic embedding, and \(\boldsymbol{h}^{\text{G}}\) denotes the glyphic embedding,  \(\alpha\) represents a learnable scalar weight.
 
-This design shares the BiLSTM encoder parameters. It reduces model complexity and strengthens the alignment of semantic and glyphic information under limited data conditions. Given the diversity of oracle bone glyphs and sparsity of semantic information, the weighted fusion mechanism allows flexible adjustment of their contributions to adapt to different importance levels. Direct concatenation of fused sentence vectors preserves the full characteristics of each inscription, helping capture subtle differences and improving fragment association judgment accuracy. Overall, the design balances the unique nature of OBI data and model efficiency.
-
-Differentiated embedding strategies are adopted for character tags of different granularities in practical applications. For primary-character tags, semantic embeddings trained by the semantic character embedding module and glyphic embeddings extracted by the glyphic character embedding module are used. For secondary-character tags, semantic embeddings are similarly obtained by the semantic character embedding module, while glyphic embeddings are first extracted by the glyphic character embedding module and then enhanced through SGCLM.
-
-The output of SGCLM will be further processed by the discriminative classification module for fragment association decision. During training, it receives feedback from the classification loss to update its parameters, thereby enhancing its capability to express both semantic and glyphic information of OBIs.
-
-
-\subsubsection{Discriminative Classification Module}\label{sec:classification}
-
-This module aims to determine whether a pair of OBI sentence embeddings originates from the same bone. A MLP~\cite{rumelhart1986learning} is employed as the classifier, which consists of two feedforward layers, a ReLU activation, and a Sigmoid output layer.
-
-The input is first passed through the first feedforward layer with ReLU activation:
-
+The two fused sentence embeddings in the pair, 
+\(\boldsymbol{h}^{\text{fused}, \text{S}_1}\) for the first sentence and 
+\(\boldsymbol{h}^{\text{fused}, \text{S}_2}\) for the second sentence, are then concatenated 
+to form a 1024-dimensional embedding:
 \begin{equation}
-\mathbf{z} = \text{ReLU}(\mathbf{W}_1 \mathbf{H} + \mathbf{b}_1),
+\boldsymbol{h^{\text{pair}}} = \left[\boldsymbol{h}^{\text{fused}, \text{S}_1}, 
+\boldsymbol{h}^{\text{fused}, \text{S}_2}\right] \in \mathbb{R}^{1024},
 \end{equation}
-where $\mathbf{H} \in \mathbb{R}^{1024}$ denotes the fused representation generated by the sentence embedding learning module, $\mathbf{W}_1 \in \mathbb{R}^{512 \times 1024}$ and $\mathbf{b}_1 \in \mathbb{R}^{512}$ are the learnable weight matrix and bias vector of the first linear layer, respectively.
+where \(\boldsymbol{h}^{\text{pair}}\) denotes the final embedding of a pair of sentences. 
 
-Then, it is transformed by a second feedforward layer followed by a Sigmoid function to obtain the confidence score $\hat{y} \in (0, 1)$:
+%duanS2.3.3old5
+%han_v10done: 这段也不好
+%This design shares the BiLSTM encoder parameters. It reduces model complexity and strengthens the alignment of semantic and glyphic information under limited data conditions. Given the diversity of oracle bone glyphs and sparsity of semantic information, the weighted fusion mechanism allows flexible adjustment of their contributions to adapt to different importance levels. Direct concatenation of fused sentence vectors preserves the full characteristics of each inscription, helping capture subtle differences and improving fragment association judgment accuracy. Overall, the design balances the unique nature of OBI data and model efficiency.
 
+%duanS2.3.3old6
+%删除了
+
+%duanS2.3.3old7
+%han_v10done: 我直接删了
+%The output of SGCLM will be further processed by the discriminative classification module for fragment association decision. During training, it receives feedback from the classification loss to update its parameters, thereby enhancing its capability to express both semantic and glyphic information of OBIs.
+
+\subsubsection{Classification Module}\label{sec:classification}
+
+%duanS2.3.4old1
+%han_v10done: an MLP block 不是 a MLP
+This module aims to determine whether a pair of OBI sentences originates from the same bone. An MLP~\cite{rumelhart1986learning} block is employed as the classifier, which consists of two feedforward layers, a ReLU activation, and a Sigmoid output layer.
+
+%duanS2.3.4old2
+%duanS2.3.4old3
+%2
+%\boldsymbol{h}
+The fused embedding for sentence pair $\boldsymbol{h}^{\text{pair}} \in \mathbb{R}^{1024}$ from the sentence embedding learning module is passed through a two-layer feedforward network to learn the association score $\hat{y} \in (0, 1)$. It is transformed by the first linear layer with weight $\boldsymbol{W}_1 \in \mathbb{R}^{512 \times 1024}$ and bias $\boldsymbol{b}_1 \in \mathbb{R}^{512}$, followed by a ReLU activation. Then, the output is passed through the second linear layer with weight $\boldsymbol{w}_2 \in \mathbb{R}^{512}$ and bias $\boldsymbol{b}_2 \in \mathbb{R}$, followed by a Sigmoid function:
+%gongshinew1
 \begin{equation}
-\hat{y} = \sigma(\mathbf{w}_2 \mathbf{z} + \mathbf{b}_2),
+\hat{y} = \sigma\Big(\boldsymbol{w}_2 \cdot \text{ReLU}(\boldsymbol{W}_1 \boldsymbol{h}^{\text{pair}} + \boldsymbol{b}_1) + \boldsymbol{b}_2\Big),
 \end{equation}
-where $\mathbf{w}_2 \in \mathbb{R}^{512}$ and $\mathbf{b}_2 \in \mathbb{R}^{1}$ are the weight and bias of the second layer, and $\sigma(\cdot)$ denotes the Sigmoid function. A threshold of 0.5 is applied to convert the confidence score into a binary decision: $\hat{y} > 0.5$ indicates this pair is predicted to be from the same bone, otherwise not.
+where $\sigma(\cdot)$ denotes the Sigmoid function. The threshold for binary classification is set to 0.5, that is, $\hat{y} > 0.5$ indicates the pair is predicted to originate from the same bone, whereas $\hat{y} \leq 0.5$ indicates otherwise.
 
+\subsubsection{Model Training}\label{sec:training}
 
-To optimize the classification performance, the Binary Cross-Entropy (BCE)~\cite{bishop2006pattern} loss function is used during training:
+%duanS2.3.4old4
+%han_v10: 模型是不是端到端训练的吗？BCEloss 不用解释。 还有 对比学习是提前学习好的 还是 独立训练的？
+%你要写清楚，三块模型1.Word2Vec 预训练，VAE 和 对比学习 预训练。剩下的这部分的参数BCE loss 把这部分你描述清楚我写
+% 对比训练的我加了一句，您看这个需不需要，我没放在正文中，写在这了看要不要加：These embeddings are further enhanced by the secondary-character glyphic contrastive learning module (SGCLM) to produce the final character glyphic embeddings.
+% 您是对的，bce是对 第三点（最终分类器）的loss，在训练中更新句子对嵌入和最终分类器的参数
 
-\begin{equation} \label{eq:BCE_function}
-\mathcal{L}_{\text{BCE}} = -[y \log(\hat{y}) + (1 - y) \log(1 - \hat{y})],
-\end{equation}
-where $y \in \{0, 1\}$ is the ground-truth label indicating whether this pair is from the same bone.
+%The proposed method consists of three components that are trained separately. First, the semantic character embeddings are trained to produce character-level semantic embeddings, and the details in Section S1 in the suplimentary materials. Second, a variational autoencoder is trained to generate glyphic embeddings for each character in Section S2 in the suplimentary materials. Note that, both the semantic and glyphic embeddings are pretrained and kept fixed during subsequent training. Third, the siamese dual tower module is trained using the pretrained embeddings as input, and only the parameters of the dual tower networks are updated. This training process enables the module to learn modality specific sentence embeddings, which are subsequently fused to form comprehensive sentence embeddings for downstream tasks. And, the third part utilise Binary Cross-Entropy (BCE)~\cite{bishop2006pattern} as the loss function.
 
-BCE is employed as the loss function because this task is a standard binary classification problem. BCE is well-suited for probabilistic outputs, offering good convergence and stable gradient flow. It is also sensitive to slight deviations in confidence values, encouraging the model to better distinguish borderline cases and improve robustness and accuracy in fragment association prediction. The Adam optimizer \cite{adam2014method} is employed for parameter learning. 
+The proposed method comprises three components, each trained separately. First, the semantic character embedding module, discussed in Section~\ref{sec:semantic-embedding}, takes a corpus of characters as input and is trained using a SGNS model to learn character-level semantic embeddings. The pretrained embeddings, which capture contextual semantic information, serve as the output of this component. The details of training this module is discussed are discussed in Section S1 of the Supplementary Materials. Second, the glyphic character embedding module, discussed in Section~\ref{sec:semantic-embedding}, takes character images as input and trains a VAE to generate character-level glyphic embeddings. The output embeddings encode structural and visual features of each character, and the details of training this module are discussed Section S2 of the Supplementary Materials. Both semantic and glyphic embeddings are pretrained and kept fixed in subsequent stages. Third, the final classier, discussed in Section~\ref{sec:semantic-embedding} Section~\ref{sec:classification}, takes the pretrained semantic and glyphic embeddings as input to predict the classification between sentences pairs. The parameters in the final classifer is updated jointly, and the loss function of the final classier is the Binary Cross Entropy loss \cite{bishop2006pattern}.
 
+%The proposed module consists 
+%To optimise the classification performance, the Binary Cross-Entropy (BCE)~\cite{bishop2006pattern} loss function is used during training:
+%gongshiold12
+%\begin{equation} \label{eq:BCE_function}
+%\mathcal{L}_{\text{BCE}} = -[y \log(\hat{y}) + (1 - y) \log(1 - \hat{y})],
+%\end{equation}
+%where $y \in \{0, 1\}$ is the ground-truth label indicating whether this pair is from the same bone.
 
-\section{Experiments}
+%The 
 
+%duanS2.3.4old5
+%BCE is employed as the loss function because this task is a standard binary classification problem. BCE is well-suited for probabilistic outputs, offering good convergence and stable gradient flow. It is also sensitive to slight deviations in confidence values, encouraging the model to better distinguish borderline cases and improve robustness and accuracy in fragment association prediction. 
+
+\section{Results}
+%han_v9: 大概这个要重构。1. Dataset Preprocessing 2. Experimental Settings。 3. Comparsion Methods 4. Empirical Study. 5. the effect of contrastive learning 6. The effect of different character embedding methods 7. the effect of different sentence embedding methods . 8 case study  0. hyper-parameter sensitivity analysis
+%1030 对实验部分重构
+%按照要求，原来的章节s3.1不动
+%3.2 其中对字嵌入模式的部分，移动到新s3.6，我看了这里是没提过的；
+%3.3 模型部分将字嵌入的移动3.6
+%3.4 实验结果同理，字嵌入分析移动到3.6，阈值分析还放在这里
+%3.5 这个就是原3.5的对比学习分析，移动
+%3.6 字嵌入分析，移动3.2、3.3、3.4 还有讨论部分双tag 注意调整上下文，结果表格分三个了;主字记得角标没有wocl
+%3.7 句嵌入，讨论部分trans 移动后注意修改讨论部分上下文
+%3.8 案例分析不动
+%3.9 参数分析，不动
+%%另外3.7的标题合理不，总感觉会和标准实验的混淆了
+% 原来的东西我搬完了，讨论部分的没时间搞了，太晚了我先睡觉，明天上午院长找我有点事，我争取中午头改完
+%第7章节的标题我感觉有点歧义啊，您看看是不是呢，原文里有些地方也是，比如在描述实验的3.2、3.3，写的是比较句向量模型，这就不对了，我改成比较相似度评价方法了association score prediction methods 不知道可以不
 \subsection{Dataset Preprocessing}
 
-The experiments are conducted on the proposed OBID-ACR dataset. The dataset is preprocessed by first removing OBI sentences with fewer than two characters, as these are too short and lack sufficient contextual information to form effective pairs. Subsequently, only inscriptions that have contextual neighbours are retained. For each valid inscription, its rubbing ID, as well as the primary-character and secondary-character tags for each oracle bone character, are preserved.
+%duanS3.1old1
+The experiments are conducted on the proposed OBID-ACR dataset. The dataset is preprocessed by removing OBI sentences with fewer than two characters, as these are too short and lack sufficient contextual information to form effective pairs. Subsequently, only inscriptions that have contextual neighbours are retained. For each valid inscription, its rubbing ID, as well as the primary-character and secondary-character tags for each oracle bone character, are preserved.
 
+%duanS3.1old2
 Pairs of OBI sentences are constructed from OBID-ACR to create positive and negative samples for training and testing GSSBL. Each pair has two OBI sentences. Positive pairs consist of two distinct inscriptions originating from the same complete oracle bone. Specifically, if a complete bone contains $n$ inscriptions, $\binom{n}{2}$ unique positive pairs are generated by pairing every two different inscriptions exactly once, excluding self-pairs. Negative pairs are generated by randomly pairing inscriptions from different complete bones. For each positive pair, $k$ negative pairs are generated. In our experiments, $k$ is set to 10.
 
-In our empirical study, the dataset was processed according to the following settings. In our training setting, each secondary-character tag appears at least once in the training set. This guarantees the model effectively learns the semantic distribution of all secondary-character tags. On this basis, all positive and negative samples are shuffled and split into training and test sets at a 9:1 ratio. The statistics of the dataset is summarised in Table~\ref{dataset_stats}.
+%duanS3.1old3
+In our empirical study, the dataset is processed according to the following settings. In our training setting, each secondary-character tag appears at least once in the training set. This guarantees the model effectively learns the semantic distribution of all secondary-character tags. On this basis, the ratio between the training and test sets is kept as close to 9:1 as possible, while maintaining the large quantity difference between positive and negative samples. The statistics of the dataset \footnote{\url{https://github.com/Borisfwyy/GSSBL}, where the data and code used in the experiments can be accessed.} is summarised in Table~\ref{dataset_stats}.
 
+%The GSSBL has been made to be publicly accessible online at \url{https://github.com/Borisfwyy/GSSBL}.
+%biaoold4
+%Dataset Statistics: Number of Positive and Negative Samples in the Training and Test Sets.
+%the statistics of positive samples and negative samples in the training and test datasets.
 \begin{table}[!htbp]
     \centering
-    \caption{Dataset Statistics: Number of Positive and Negative Samples in the Training and Test Sets.\label{dataset_stats}}
+    \caption{The statistics of positive samples and negative samples in the training and test datasets. \label{dataset_stats}}
     \begin{tabular}{cccc}
         \toprule
         \textbf{Dataset Split}	& \textbf{Positive Samples}	& \textbf{Negative Samples}   & \textbf{Total Samples}\\ 
         \toprule
-        Training Set    & 14065  & 139513 & 153578 \\
-        Test Set     & 1157    & 15279   & 16436   \\
+        Training Set    & 13961  & 139617 & 153578 \\
+        Test Set     & 1552    & 15513   & 17065   \\
+        Total Sets    & 15513    & 155130   & 170643   \\
         \toprule
     \end{tabular}
 \end{table}
 
 \subsection{Experimental Settings}
 
-The task of bone-level association prediction for OBIs can be regarded as an imbalanced binary classification problem. The imbalance arises as the number of inscriptions from different bones greatly exceeds those from the same bone, resulting in a severe imbalance between positive and negative samples. Following relevant studies \cite{zhang2021network}, two evaluation metrics were adopt, the Area Under the Precision-Recall curve (AUPR)~\cite{boyd2013area} and the Area Under the Receiver Operating Characteristic curve (AUROC)~\cite{fawcett2006introduction}, to comprehensively assess model performance. AUPR highlights the model’s ability to identify positive samples, effectively capturing the precision-recall trade-off in imbalanced data and aiding minority class detection. AUROC measures the probability that a randomly chosen positive sample is ranked higher than a negative sample. But, it may provide an optimistic result for an imbalanced dataset. Combining both metrics provides a more balanced evaluation. It is worth mentioning that the two metrics may not produce the same conclusion.
+%duanS3.2old1
+%han_v12 这里的原版的两个 一看写作风格就不一致,我重新改了。
+%The task of bone-level association prediction for OBIs can be regarded as an imbalanced binary classification problem. The imbalance arises as the number of inscriptions from different bones greatly exceeds those from the same bone, resulting in a severe imbalance between positive and negative samples. Since the task has been formulated as a binary classification problem, six evaluation metrics are adopted, the Area Under the Receiver Operating Characteristic curve (AUROC)~\cite{fawcett2006introduction} and the Area Under the Precision-Recall curve (AUPR)~\cite{boyd2013area}, Accuracy, Precision, Recall, and F1 score \cite{powers2011evaluation}, to provide a comprehensive and multi-perspective assessment of model performance. AUPR measures the model’s ability to identify positive samples. AUROC measures the probability that a randomly chosen positive sample is ranked higher than a negative sample. Accuracy measures the overall proportion of correct predictions. Precision measures the correctness of predictions labelled as positive. Recall indicates the model’s coverage of positive samples. Finally, F1 score is a single metric that balances a trade-off between Precision and Recall.
 
-A series of experiments are designed to evaluate GSSBL. To ensure the reliability of the experimental results, five independent random trials are conducted, and the average performance across these runs is reported as the final result. Moreover, to investigate the impact of different character semantic embedding initializations on model performance, two representative embedding methods are collected for comparison: Global Vectors for Word Representation (GloVe)~\cite{pennington2014glove}, which captures global semantic relationships by leveraging word co-occurrence statistics from large general corpora, and Continuous Bag-of-Words with NEGative sampling (CBOW-NEG)~\cite{mikolov2013distributed}, which is effective in capturing contextual semantic information, especially when training data is limited and sparse. Comparing these two initialization methods aims to analyse how the quality of character semantic embeddings affects the oracle bone fragment association prediction task. Furthermore, to compare the effectiveness of different sentence embedding generation models on this task, several commonly used sentence embedding methods are collected, which will be detailed in the next chapter. Through these experiments, the contributions and performance differences of character-level and sentence-level semantic representations for oracle bone fragment association prediction are comprehensively revealed.
+The task is formulated as an imbalanced binary classification problem, as inscriptions originating from different bones vastly outnumber those from the same bone. To provide a comprehensive assessment of model performance, six metrics are reported: AUROC~\cite{fawcett2006introduction}, AUPR~\cite{boyd2013area}, Accuracy, Precision, Recall, and F1 score~\cite{powers2020evaluation}. AUROC evaluates the ranking ability of the classifier. Accuracy, Precision, Recall, and F1 score are computed from the confusion matrix and quantify different aspects of prediction quality. Accuracy reflects overall correctness, Precision measures the reliability of positive predictions, Recall captures the proportion of true positives retrieved. The F1 score is a single metric that balances a trade-off between Precision and Recall. To ensure the reliability of the results, all methods are run five times with different random seeds, and the reported performance corresponds to the average across these independent runs.
 
+%duanS3.2new1
+%2
+%han_v9done: 这是啥？Newly added second paragraph in Section 3.2: 删了
+%昨晚上改到这个的时候已经不太精神了，出了点纰漏
+%han_v12: 你到底看没看自己写的东西？这两段有关联吗？为啥只写TP FP 这些简单的公式，不写AUPR AUROC 这些复杂的？全删了，
+%To calculate these values, four fundamental quantities are needed. True positive (TP) indicates samples that are annotated and actually present in the sample. False positive (FP) indicates samples that are annotated but actually absent in the sample. True negative (TN) indicates samples that are not annotated and actually absent in the sample. False negative (FN) indicates samples that are not annotated but actually present in the sample. The performance metrics can then be computed accordingly. The performance metrics can then be computed as follows:
+%gongshinew2
+%\begin{equation}
+%\begin{aligned}
+%\text{Precision} &= \frac{TP}{TP + FP}, \quad &\text{Accuracy} &= \frac{TP + TN}{TP + TN + FP + FN},\\
+%\text{Recall} &= \frac{TP}{TP + FN}, \quad & F_1 &= 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}.
+%\end{aligned}
+%\end{equation}
+%Together, these metrics offer a more complete evaluation of the model’s performance in terms of overall correctness, positive sample identification, and the balance between precision and coverage. In our experiments, these metrics are computed using a default decision threshold of 0.5.
+
+%duanS3.2old2
+%2次
+%3
+%Comprehensive experiments are conducted to assess the performance of the proposed method and compare it with baseline methods. To ensure the reliability of the experimental results, all experiments are conducted in five independent random repeats, and the reported results are the average performance across these repeats. To compare the effectiveness of different sentence embedding learning models on this task, several commonly used sentence embedding methods are collected, which will be detailed as follows. SGNS pre-trained character semantic embeddings are adopted as the representation to ensure rich semantic information. Through these experiments, the contributions and performance differences of character-level and sentence-level semantic representations in bone-level association prediction are comprehensively analysed. In addition, to analyse the model’s sensitivity to decision thresholds, a threshold experiment was conducted to evaluate Accuracy, Precision, Recall, and F1 score under different decision thresholds.
+
+%SGNS pre-trained character semantic embeddings are adopted as the representation to ensure rich semantic information. Through these experiments, the contributions and performance differences of character-level and sentence-level semantic representations in bone-level association prediction are comprehensively analysed. 这个移除了 这个和后面的冲突
+
+%To compare the effectiveness of different sentence embedding learning models on this task, several commonly used sentence embedding methods are collected, which will be detailed as follows. 这句改了下描述，不和3.7、3.6混淆；
+
+%duanS3.2old2
+%Comprehensive experiments are conducted to assess the performance of the proposed method and compare it with baseline methods. To ensure the reliability of the results, all methods are run five times with different random seeds, and the reported performance corresponds to the average across these independent runs. %Several commonly used association score prediction methods are considered, as detailed in the following sections, to compare their performance with GSSBL. In addition, to analyse GSSBL’s sensitivity to decision thresholds, an additional experiment is conducted to evaluate Accuracy, Precision, Recall, and F1 score under different decision thresholds.
+%阈值分析我认为还是属于3.4的，别的地方不好搬，阈值不算超参的分析内容吧
+%association score prediction methods用这个来表示作为整体对比的模型
 
 \subsection{Comparison Methods}
 
-
+%duanS3.3old1
 To validate the effectiveness of the proposed method, an empirical study is conducted on multiple state-of-the-art baseline methods for comparison. These baseline methods can be broadly categorised into two groups.
 
-The first category consists of two-stage methods. These methods generate a sentence embedding, then the sentence embedding is fed to a classifier. The sentence embedding methods consists Smooth Inverse Frequency (SIF) \cite{arora2017simple}, its unsupervised extension Unsupervised Smooth Inverse Frequency (USIF) \cite{ethayarajh2018unsupervised}, and Bag-of-Words (BoW) \cite{nigam2000text}. SIF and USIF produce dense vector representations from weighted averages of word embeddings, with USIF adaptively estimating parameters. BoW encodes sparse lexical counts. Each embedding is evaluated with five classifiers: Logistic Regression (LR) \cite{bishop2006pattern}, Support Vector Machine (SVM) with polynomial kernel \cite{platt1999probabilistic}, eXtreme Gradient Boosting (XGBoost) \cite{chen2016xgboost}, Light Gradient Boosting Machine (LightGBM) \cite{ke2017lightgbm}, and Multi-Layer Perceptron (MLP) \cite{rumelhart1986learning} covering a wide range of classifiers.
+%duanS3.3old2
+The first category consists of two-stage methods. These methods generate sentence embeddings, then the sentence embeddings are fed to a classifier seperately. The sentence embedding methods consists Smooth Inverse Frequency (SIF) \cite{arora2017simple}, its unsupervised extension Unsupervised Smooth Inverse Frequency (USIF) \cite{ethayarajh2018unsupervised}, and Bag-of-Words (BoW) \cite{nigam2000text}. SIF and USIF produce dense vector representations from weighted averages of character semantic embeddings, with USIF adaptively estimating parameters. BoW encodes sparse lexical counts. Each sentence embedding is evaluated with five classifiers: Logistic Regression (LR) \cite{bishop2006pattern}, Support Vector Machine (SVM) with polynomial kernel \cite{platt1999probabilistic}, eXtreme Gradient Boosting (XGBoost) \cite{chen2016xgboost}, Light Gradient Boosting Machine (LightGBM) \cite{ke2017lightgbm}, and Multi-Layer Perceptron (MLP) \cite{rumelhart1986learning}.
 
-The second category consists of end-to-end models that jointly learn representations and classifiers from the word embeddings using deep learning. This category consists the Transformer Encoder \cite{vaswani2017attention}, which captures long-range dependencies through self-attention, TextCNN \cite{kim2014convolutional}, which extracts local n-gram features via convolutional filters, and BiLSTM \cite{graves2005framewise}, which encodes sequences bidirectionally to capture contextual information. This setup enables a direct comparison between decoupled and unified learning paradigms.
+%duanS3.3old3
+The second category consists of end-to-end models that jointly learn representations and classifiers from the character semantic embeddings using deep learning. This category consists the Transformer Encoder \cite{vaswani2017attention}, which captures long-range dependencies through self-attention, TextCNN \cite{kim2014convolutional}, which extracts local n-gram features via convolutional filters, and BiLSTM \cite{graves2005framewise}, which encodes sequences bidirectionally to capture contextual information. This setup enables a direct comparison between decoupled and unified learning paradigms.
+
+%duanS3.3old4
+%han_v12 我重写了，一段话只说一个事情，为啥治理要提 SGNS 和 BoW的架构？
+%All models follow their default configurations and replicate the original architecture as closely as possible. SGNS is adopted as the unified initialisation scheme for character semantic embeddings. Specifically, the BoW model, based on term frequency statistics, does not rely on character semantic embeddings. The kernel sizes in TextCNN are consistent with the original implementation. The Transformer model adopts 6 encoder layers, uses the [SEP] token to separate sentence pairs, applies [PAD] for padding, and takes the [CLS] token representation as the output for classification. SIF, USIF and BoW are evaluated using the same set of classifiers, including LR, SVM with a polynomial kernel of degree 3, XGBoost, LightGBM, and MLP. Our proposed models are implemented following the architecture described in the previous sections.
+
+%han_v12. taozhi 需要添加其他设置 后面这改不动了 
+All baseline models are implemented according to their original configurations. The TextCNN baseline preserves the original convolutional kernel settings, whereas the Transformer baseline uses six encoder layers, applies \texttt{[SEP]} to separate sentence pairs, \texttt{[PAD]} for padding, and takes the final \texttt{[CLS]} token as the classification output.
+
+%duanS3.3old5
+All end-to-end models, including the proposed method, are trained under the same optimisation settings. Training is conducted for 100 epochs with a learning rate of 5e-4, a batch size of 64, and the Adam optimiser~\cite{kingma2015adam}. The maximum input length is capped at 30 tokens. Both the semantic and glyphic character embeddings have a dimensionality of 512. For SGNS pre-training, the window size is set to 5 and the number of negative samples to 5. Unless otherwise specified, all models operate on sentences annotated with secondary-character tags.
+
+%For the two stage methods, the character embeddings from SGNS are kept identical for all 
+
+%For TextCNN, the convolutional kernel sizes are kept consistent with the original implementation. The Transformer model is configured with six encoder layers; sentence pairs are separated using the \texttt{[SEP]} token, padded with \texttt{[PAD]}, and the final \texttt{[CLS]} representation is used for classification. SIF, USIF, and BoW representations are evaluated with the same set of downstream classifiers, including Logistic Regression (LR), Support Vector Machine (SVM) with a polynomial kernel of degree 3, XGBoost, LightGBM, and a Multi-Layer Perceptron (MLP). The proposed models are implemented strictly according to the architecture specified in the preceding sections.
+
+%duanS3.3old5
+%三次
+%5
+%For fair comparison, all deep learning models, including the proposed method, are trained under the same settings. The number of training epochs is set to 100, the learning rate is fixed at 5e-4, the batch size is 64, and Adam \cite{kingma2015adam} is employed as the optimiser. The maximum input sentence length is limited to 30 tokens. The dimensions of the character semantic embedding and character glyphic embedding are set to 512, and the number of negative samples is fixed at 5. All models are evaluated using sentences annotated with secondary-character tags as input. To examine the effect of primary-character tag, additional experiments are conducted using sentences annotated with primary-character tags as input for all methods.
+
+%这段是对比模型的介绍，只在最后一段有点问题：1. 修改了，说所有模型都是用二级做 character embedding input，后面这句去掉了 2. 在算法描述上，讲了一下窗口大小是5来统一
 
 
-All models follow their default configurations and replicate the original architecture as closely as possible. SGNS is adopted as the unified initialization scheme for character embeddings. Specifically, the BoW model, based on term frequency statistics, does not rely on word embeddings. The kernel sizes in TextCNN are consistent with the original implementation. The Transformer model adopts 6 encoder layers, uses the [SEP] token to separate sentence pairs, applies [PAD] for padding, and takes the [CLS] token representation as the output for classification. SIF, USIF and BoW are evaluated using the same set of classifiers, including LR, SVM with a polynomial kernel of degree 3, XGBoost, LightGBM, and MLP. Our proposed models are implemented following the architecture described in the previous sections.
 
-For fair comparison, all deep learning models, including our own, are trained under the same settings: the number of training epochs is set to 100, the learning rate is fixed at 1e-3, the batch size is 64, and Adam is used as the optimizer. The maximum input sentence length is limited to 30 tokens. The character embedding dimension is set to 512, and the number of negative samples is fixed at 5. Experiments on each model are conducted using both primary-character and secondary-character embeddings separately.
+%To examine the effect of primary-character tag, additional experiments are conducted using sentences annotated with primary-character tags as input for all methods.这个移到字嵌入对比
 
+\subsection{Empirical Study}
 
-
-\subsection{Result}
- 
+%biaoold5
+%这个是子字结果
+%4
+%han_v9wait: 需要标出 primary-character tag的时候 我们的是没有 对比学习的？我觉得是哈
+%这个在拆分后的表格中通过脚标展示，搞定了
+%han_v9done Classification Performance of Various Sentence Embedding Methods -> Classification Performance of Various Comparsion Methods
 \begin{table}[!htbp]
-    \centering
-    \caption{Classification Performance of Various Sentence Embedding Methods}\label{result-main}
-    \begin{tabular}{c|cc|cc|cc}
-        \toprule
-        \multirow{2}{*}{\textbf{Model Type}} & \multicolumn{2}{c|}{\textbf{Character Tag}} & \multicolumn{2}{c|}{Primary-character} & \multicolumn{2}{c}{Secondary-character} \\
-        \cmidrule{2-7}
-        & \textbf{Method} & \textbf{Classifier} & AUPR & AUROC & AUPR & AUROC \\
-        \toprule
-        \multirow{15}{*}{\textbf{Two-Stage}} &\multirow{5}{*}{SIF} & LR & 0.1199 & 0.6455 & 0.1215 & 0.6496 \\
-        &    & SVM       & 0.2151 & 0.7339 & 0.2137 & 0.7413  \\
-        &    & XGBoost   & 0.3554 & 0.8217 & 0.3538 & 0.8248  \\
-        &    & LightGBM  & 0.3304 & 0.8079 & 0.3274 & 0.8134  \\
-        &    & MLP       & 0.3173 & 0.8110 & 0.3063 & 0.8105  \\
-        \cmidrule{2-7}
-        &\multirow{5}{*}{USIF}& LR        & 0.1120 & 0.6206 & 0.1127 & 0.6217  \\
-        &    & SVM       & 0.1257 & 0.6430 & 0.0519 & 0.3573  \\
-        &    & XGBoost   & 0.2897 & 0.7690 & 0.3084 & 0.7740  \\
-        &    & LightGBM  & 0.2516 & 0.7408 & 0.2509 & 0.7454  \\
-        &    & MLP       & 0.2298 & 0.7433 & 0.2171 & 0.7396  \\
-        \cmidrule{2-7}
-        &\multirow{5}{*}{BoW} & LR        & 0.1300 & 0.6350 & 0.1351 & 0.6380  \\
-        &    & SVM       & 0.1986 & 0.7300 & 0.2021 & 0.7031  \\
-        &    & XGBoost   & 0.3168 & 0.7920 & 0.3270 & 0.8025  \\
-        &    & LightGBM  & 0.3240 & 0.8050 & 0.3291 & 0.8002  \\
-        &    & MLP       & 0.4251 & 0.8417 & 0.4766 & 0.8719  \\
-        \midrule
-        \multirow{4}{*}{\textbf{End-to-End}} &\multicolumn{2}{c|}{Transformer Encoder} & 0.2728 & 0.7811 & 0.2816 & 0.7817  \\
-        &\multicolumn{2}{c|}{TextCNN} & 0.7014 & 0.9498 & 0.6983 & 0.9491  \\
-        &\multicolumn{2}{c|}{BiLSTM}  & 0.7413 & 0.9565 & 0.7355 & 0.9549  \\
-        &\multicolumn{2}{c|}{GSSBL}   & \textbf{0.7897} & \textbf{0.9659} & \textbf{0.8017} & \textbf{0.9691}  \\
-        \bottomrule
-    \end{tabular}
-\end{table}
+        \centering
+        \caption{Classification performance of various comparison methods using character embeddings learned from secondary-character tags.}\label{result-secondary}
+            \begin{tabular}{c|cc|cccccc}
+            \toprule
+            \multirow{3}{*}{\textbf{Model Type}} & \multicolumn{2}{c|}{\textbf{Method}} & \multicolumn{6}{c}{\textbf{Evaluation Metric}} \\
+            \cmidrule{2-9}
+            & \textbf{Sentence} & \multirow{2}{*}{\textbf{Classifier}} & \multirow{2}{*}{AUROC} & \multirow{2}{*}{AUPR} & \multirow{2}{*}{Accuracy} & \multirow{2}{*}{Precision} & \multirow{2}{*}{Recall} & \multirow{2}{*}{F1 score} \\
+            & \textbf{Embedding} & & & & & & & \\
+            \toprule
+                        \multirow{15}{*}{\textbf{Two-Stage}} &\multirow{5}{*}{SIF} 
+                 & LR        & 0.6858 & 0.1500 & 0.7834 & 0.1765 & 0.3769 & 0.2404 \\
+            &    & SVM       & 0.6867 & 0.1502 & 0.8645 & 0.1665 & 0.1224 & 0.1411 \\
+            &    & XGBoost   & 0.8549 & 0.4952 & 0.9239 & 0.7279 & 0.2603 & 0.3835 \\
+            &    & LightGBM  & 0.8442 & 0.4739 & 0.9194 & 0.7940 & 0.1540 & 0.2580 \\
+            &    & MLP       & 0.8405 & 0.4501 & 0.9174 & 0.7377 & 0.1436 & 0.2396 \\
+            \cmidrule{2-9}
+            &\multirow{5}{*}{USIF}
+                 & LR        & 0.6847 & 0.1498 & 0.7838 & 0.1786 & 0.3827 & 0.2436 \\
+            &    & SVM       & 0.6858 & 0.1503 & 0.8632 & 0.1645 & 0.1237 & 0.1412 \\
+            &    & XGBoost   & 0.8743 & 0.5302 & 0.9267 & 0.7284 & 0.3093 & 0.4342 \\
+            &    & LightGBM  & 0.8569 & 0.4900 & 0.9197 & 0.7768 & 0.1637 & 0.2704 \\
+            &    & MLP       & 0.8410 & 0.4547 & 0.9177 & 0.7426 & 0.1463 & 0.2443 \\
+            \cmidrule{2-9}
+            &\multirow{5}{*}{BoW} 
+                 & LR        & 0.6066 & 0.1311 & 0.8099 & 0.1527 & 0.2396 & 0.1866 \\
+            &    & SVM       & 0.6911 & 0.2820 & 0.8758 & 0.3550 & 0.4465 & 0.3955 \\
+            &    & XGBoost   & 0.7952 & 0.4056 & 0.9162 & 0.7699 & 0.1121 & 0.1957 \\
+            &    & LightGBM  & 0.8061 & 0.4317 & 0.9145 & \textbf{0.8444} & 0.0734 & 0.1351 \\
+            &    & MLP       & 0.8689 & 0.5525 & 0.9288 & 0.7046 & 0.3746 & 0.4890 \\
+            \midrule
+            \multirow{4}{*}{\textbf{End-to-End}} 
+            &\multicolumn{2}{c|}{TextCNN} & 0.9455 & 0.7105 & 0.9448 & 0.7112 & 0.6622 & 0.6858 \\
+            &\multicolumn{2}{c|}{Transformer Encoder} & 0.7762 & 0.2856 & 0.9107 & 0.5944 & 0.0811 & 0.1403 \\
+            &\multicolumn{2}{c|}{BiLSTM}  & 0.9506 & 0.7529 & 0.9470 & 0.7185 & 0.6877 & 0.7027 \\
+            &\multicolumn{2}{c|}{GSSBL}   & \textbf{0.9583} & \textbf{0.7862} & \textbf{0.9531} & 0.7505 & \textbf{0.7255} & \textbf{0.7377} \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
 
-The empirical results of different models are shown in Table~\ref{result-main}, from which the following observations can be drawn. First, our proposed method significantly outperforms all existing baselines in experiments involving both primary-character tags and secondary-character tags. This demonstrates that jointly leveraging glyphic and semantic information significantly benefits the task of fragment association prediction. These results highlight the importance of integrating visual structural features with semantic representations in enhancing the model’s discriminative capability. Second, a comparison experiment between primary-character and secondary-character reveals that in some models, secondary-character representations achieve better performance than their primary-character counterparts. This indicates that secondary-characters contain finer-grained structural and semantic information. However, such fine-grained signals are not always fully exploited by all models. Some baseline models suffer performance degradation when dealing with secondary-characters due to their higher complexity, revealing a lack of generalisation under structural variations. In contrast, our proposed model, with its dual-tower architecture and embedding alignment mechanism, is better suited to capture subtle semantic differences and glyphic-level heterogeneity among secondary-characters. Consequently, it achieves comprehensive improvements on both levels. Third, some models achieve reasonable performance in terms of AUROC but relatively low AUPR. This indicates that, in the fragment association prediction task with imbalanced positive and negative samples, these models can capture the overall trend of distinguishing positive and negative samples, yet their prediction accuracy for the scarce positive samples remains limited, revealing their shortcomings under sparse label conditions. In contrast, GSSBL performs well and consistently across both metrics, demonstrating not only its effectiveness in distinguishing positive and negative samples, but also its ability to maintain high prediction accuracy when positive samples are scarce. This further highlights the robustness and reliability of GSSBL in handling sparse labels and complex structural information.
+%duanS3.4old1
+%The empirical results of different models are shown in Table~\ref{result-main}, from which the following observations can be drawn. First, GSSBL achieves better performance when using secondary-character tags compared with primary-character tags. Comparative experiments indicate that some baseline models suffer performance degradation when processing secondary-character tags, reflecting their limited generalisation under structural complexity and uneven feature distribution. Leveraging its dual-tower architecture and embedding alignment mechanism, GSSBL effectively models semantic and glyphic features of secondary-character tags, achieving performance improvements compared with using primary-character tags. Second, baseline models show low performance in AUPR and F1 score compared with GSSBL. This pattern is mainly due to the 1:10 ratio of positive to negative samples, where sparse positive instances cause negative-biased predictions. In contrast, GSSBL maintains high predictive accuracy even with scarce positive samples and achieves stable and superior performance across AUROC, AUPR, Precision, Recall, and F1 score, demonstrating robustness and reliability. Third, GSSBL achieves the best performance separately on both primary-character tags and secondary-character tags. This indicates that the model effectively leverages semantic and glyphic information, achieving comprehensive gains and maintaining stable advantages across varying complexity and granularity. 
 
-\subsection{Ablation Study}
+%duanS3.4old1
+%这里是把主字分析的部分拿走了，所以只有这点分析了
+%1103 改了一下分析
+The empirical results of different models are shown in Table~\ref{result-secondary}, from which two main observations can be drawn. First, GSSBL outperforms all baseline models across all evaluation metrics except for Precision. This indicates that the model effectively leverages semantic and glyphic information, achieving comprehensive gains and maintaining stable advantages in such complex scenarios. Second, most baseline models exhibit generally low AUPR and F1 scores. This pattern mainly results from the 1:10 ratio of positive to negative samples, where sparse positive instances bias the predictions toward the negative class. GSSBL, however, effectively mitigates this issue, maintaining balanced precision and recall under such imbalanced conditions.
+%second, 大多数baseline models的aupr和 f1 score 普遍偏低. This pattern is mainly due to the 1:10 ratio of positive to negative samples, where sparse positive instances cause negative-biased predictions. gssbl 能够克服这点，在xxx
 
+%duanS3.4new1
+%2
+%阈值部分不搬家，还在这里吧，需不需要将这里是根据子字展开的实验？我觉得不用吧，在3.3中讲了啊，而且the proposed GSSBL不就是子字嘛
+%han_v11: threshold sensitivity 改成decision threshold sensitivitiy
+A decision threshold sensitivity experiment is conducted to investigate the impact of threshold selection on the Accuracy, Precision, Recall, and F1 score of the proposed GSSBL. The predicted probabilities are segmented into thresholds from 0.1 to 0.9 with a step size of 0.1, and the four metrics are calculated at each threshold. The mean values are then calculated to obtain the final results, as shown in Figure~\ref{Threshold}. The results indicate that, due to the large proportion of negative samples, the model exhibits a bias towards predicting negatives, with most negative samples assigned very low scores in the low-threshold range, thereby maintaining high overall Accuracy. As the threshold increases, Precision steadily improves while Recall decreases significantly, suggesting that the model becomes overly conservative at high thresholds and is prone to missing positive samples. Overall, although the model demonstrates strong ability to distinguish between positive and negative samples, there remains room for improvement in balancing predictions and enhancing the identification of sparse positive samples.
 
+%tunew1
+%4
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=1\linewidth]{pic/Threshold.png} 
+\caption{Impact of varying decision thresholds on Accuracy, Precision, Recall, and F1 score for positive and negative classes.} \label{Threshold}
+\end{figure}   
+\unskip
+
+%\subsection{Ablation Study}
+\subsection{Effect of Contrastive Learning}
+
+%tuold3
+%5
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=1\linewidth]{pic/abcl.png} 
-\caption{The impact of using SGCLM on classification performance. \textbf{GSSBL-Coarse} refers to the GSSBL model using primary-character (coarse-grained) tags. \textbf{GSSBL-Fine} denotes the GSSBL model using secondary-character (fine-grained) tags without the SGCLM. \textbf{GSSBL-Fine-Cl} enables the SGCLM on secondary-character glyphs to enhance contrastive representation learning. \label{abcl}}
+\caption{The impact of using SGCLM on classification performance. \textbf{GSSBL-Coarse} refers to the GSSBL model using primary-character (coarse-grained) tags. \textbf{GSSBL-Fine} denotes the GSSBL model using secondary-character (fine-grained) tags without the SGCLM. \textbf{GSSBL-Fine-CL} enables the SGCLM on secondary-character glyphs to enhance contrastive representation learning. \label{abcl}}
 \end{figure}   
 \unskip
 
-Two ablation experiments are conducted to evaluate the impact of SGCLM and the choice of initial character embeddings on model performance. Both experiments are based on the complete model architecture, with only the components under investigation being modified. In these ablation studies, all hyperparameters follow the aforementioned settings unless otherwise specified.
+%duanS3.5old1
+%改一下总起段，这里就是在说cl的对比
+%Two ablation experiments are conducted to evaluate the impact of SGCLM and the choice of initial character semantic embeddings on model performance. Both experiments are based on the complete model architecture, with only the components under investigation being modified. In these ablation studies, all hyper-parameters follow the aforementioned settings unless otherwise specified.
 
-The first ablation experiment evaluates the SGCLM’s impact on secondary-character tags and overall performance. GSSB-Fine-cl, which incorporates the SGCLM, is compared with GSSB-Fine, a variant that also uses secondary-character tags but excludes the module. The results demonstrate that integrating the SGCLM effectively enhances secondary-character glyphic representations, improves the model’s ability to capture fine-grained structural information, and thereby improves the accuracy of fragment association prediction. Furthermore, both fine-grained models consistently outperform GSSB-Coarse, which uses only primary-character tags without access to secondary-character details. This indicates that fine-grained secondary-character information positively contributes to model performance. Detailed numerical results and comparisons are provided in Figure~\ref{abcl}. 
+A component effect experiment is conducted to evaluate the impact of the SGCLM on secondary-character tags and overall model performance. Specifically, GSSB-Fine-CL employs the SGCLM, while GSSB-Fine also uses secondary-character tags but excludes this module. In addition, GSSB-Coarse, which uses primary-character tags and therefore cannot incorporate the SGCLM, is also included for comparison.
 
-The second ablation experiment examines how different initial semantic embeddings affect model performance. The experiments are based on the complete model architecture, including glyphic embeddings and SGCLM, with only the semantic character embeddings changed. The three tested semantic embeddings are SGNS, CBOW-NEG, and GloVe. The embedding dimension for all three models is 512, and all other model parameters remain consistent with the full model. Experiments are conducted at both the primary-character and secondary-character tags to compare the performance differences of different initial semantic embeddings at different granularities. As shown in Table~\ref{ab-qianru}, secondary-character tag semantic embeddings consistently outperform primary-character tag counterparts across all three embedding methods, demonstrating that incorporating finer-grained secondary-character information can effectively enhance model performance. This trend suggests that secondary-character tag representations, compared to primary-character tags, are more likely to capture subtle details in OBIs, thus improving the model’s discriminative capability. Among the three semantic embedding methods, SGNS performs slightly better than the others in terms of both AUPR and AUROC, implying that it may be more suitable for capturing semantic relationships in the oracle bone context. Compared to CBOW-NEG and GloVe, SGNS’s mechanism of predicting context words allows it to more effectively model fine-grained relationships between characters, which aligns to some extent with the complex writing and semantic structures of oracle bones. 
+%duanS3.5old2
+%这段把一些描述搬到第一段了
+%The first ablation experiment evaluates the SGCLM’s impact on secondary-character tags and overall performance. GSSB-Fine-CL, which incorporates the SGCLM, is compared with GSSB-Fine, a variant that also uses secondary-character tags but excludes the module. The results demonstrate that integrating the SGCLM effectively enhances secondary-character glyphic representations, improves the model’s ability to capture fine-grained structural information, and thereby improves the accuracy of fragment association prediction. Furthermore, both fine-grained models consistently outperform GSSB-Coarse, which uses only primary-character tags without access to secondary-character tag details. This indicates that fine-grained secondary-character information positively contributes to model performance. Detailed numerical results and comparisons are introduced in Figure~\ref{abcl}. 
+
+%主题句是不是还得改啊，我感觉The comparative results of the experiment are shown in Figure~\ref{abcl}.不行我加一个吧 老师您看哪个合适
+%The comparative results of the experiment are shown in Figure~\ref{abcl}. The results demonstrate that integrating the SGCLM effectively enhances secondary-character glyphic representations, improves the model’s ability to capture fine-grained structural information, and thereby improves the accuracy of fragment association prediction. Furthermore, both fine-grained models consistently outperform GSSB-Coarse, which uses only primary-character tags without access to secondary-character tag details. This indicates that fine-grained secondary-character information positively contributes to model performance.
+The experimental results, shown in Figure~\ref{abcl}, indicate that integrating SGCLM effectively strengthens the glyphic representations in GSSBL. SGCLM enhances the model’s ability to capture fine-grained structural information, thereby improving fragment association prediction accuracy. Notably, the Recall of GSSBL-Fine-CL slightly decreases, while Precision improves. This indicates more accurate identification of positive instances. Furthermore, GSSBL-Fine and GSSBL-Fine-CL outperform GSSBL-Coarse in all metrics except Recall. This demonstrates that fine-grained secondary-character information positively contributes to model performance.
+%The experimental results indicate that integrating SGCLM effectively strengthens the glyphic representations of secondary-character tags, as shown in Figure~\ref{abcl}. SGCLM enhances the model’s ability to capture fine-grained structural information, thereby improving fragment association prediction accuracy. Furthermore, both fine-grained models consistently outperform GSSBL-Coarse, which relies solely on primary-character tags without access to secondary-character details. This demonstrates that fine-grained secondary-character information positively contributes to model performance.
+
+\subsection{Effect of Different Character Semantic Embedding Methods}
+%这一段有tag的俩实验和一个嵌入学习方法的实验
+%标题改了一下。这里是在比较语义，原来的没有semantic
+
+%需要一个章节的总起段
+In the proposed method, SGNS is employed to learn the character semantic embeddings based on secondary-character tags. To examine the impact of this design choice, three comparative experiments are conducted. First, the model learns character semantic embeddings using only primary-character tags. Second, both primary- and secondary-character tags are jointly used for semantic embedding learning. Third, different learning methods for obtaining initial character semantic embeddings are employed to assess their influence on model performance.
+
+%biaonew4：这个是主字的表
+\begin{table}[!htbp]
+    \centering
+    \caption{Classification performance of various comparison methods using character embeddings learned from primary-character tags.}
+    \label{result-primary}
+    \begin{tabular}{c|cc|cccccc}
+    \toprule
+    \multirow{3}{*}{\textbf{Model Type}} & \multicolumn{2}{c|}{\textbf{Method}} & \multicolumn{6}{c}{\textbf{Evaluation Metric}} \\
+    \cmidrule{2-9}
+    & \textbf{Sentence} & \multirow{2}{*}{\textbf{Classifier}} & \multirow{2}{*}{AUROC} & \multirow{2}{*}{AUPR} & \multirow{2}{*}{Accuracy} & \multirow{2}{*}{Precision} & \multirow{2}{*}{Recall} & \multirow{2}{*}{F1 score} \\
+    & \textbf{Embedding} & & & & & & & \\
+    \toprule
+    \multirow{15}{*}{\textbf{Two-Stage}} &\multirow{5}{*}{SIF} 
+         & LR        & 0.6847 & 0.1530 & 0.7888 & 0.1755 & 0.3576 & 0.2355 \\
+    &    & SVM       & 0.6894 & 0.1527 & 0.8671 & 0.1660 & 0.1147 & 0.1357 \\
+    &    & XGBoost   & 0.8491 & 0.4898 & 0.9230 & 0.7088 & 0.2603 & 0.3808 \\
+    &    & LightGBM  & 0.8360 & 0.4605 & 0.9180 & \textbf{0.7946} & 0.1321 & 0.2265 \\
+    &    & MLP       & 0.8320 & 0.4352 & 0.9163 & 0.7468 & 0.1201 & 0.2068 \\
+    \cmidrule{2-9}
+    &\multirow{5}{*}{USIF}
+         & LR        & 0.6834 & 0.1545 & 0.7899 & 0.1767 & 0.3582 & 0.2367 \\
+    &    & SVM       & 0.6880 & 0.1542 & 0.8659 & 0.1858 & 0.1405 & 0.1600 \\
+    &    & XGBoost   & 0.8615 & 0.5173 & 0.9256 & 0.7252 & 0.2925 & 0.4169 \\
+    &    & LightGBM  & 0.8498 & 0.4948 & 0.9191 & 0.7929 & 0.1501 & 0.2524 \\
+    &    & MLP       & 0.8313 & 0.4287 & 0.9157 & 0.7251 & 0.1196 & 0.2040 \\
+    \cmidrule{2-9}
+    &\multirow{5}{*}{BoW} 
+         & LR        & 0.6200 & 0.1371 & 0.8232 & 0.1638 & 0.2300 & 0.1913 \\
+    &    & SVM       & 0.7288 & 0.3004 & 0.8811 & 0.3742 & 0.4574 & 0.4117 \\
+    &    & XGBoost   & 0.7989 & 0.4154 & 0.9177 & 0.7651 & 0.1385 & 0.2345 \\
+    &    & LightGBM  & 0.8071 & 0.4265 & 0.9141 & 0.7843 & 0.0773 & 0.1407 \\
+    &    & MLP       & 0.8684 & 0.5348 & 0.9271 & 0.7126 & 0.3329 & 0.4533 \\
+    \midrule
+    \multirow{4}{*}{\textbf{End-to-End}} 
+    &\multicolumn{2}{c|}{TextCNN} & 0.9419 & 0.7148 & 0.9435 & 0.7098 & 0.6422 & 0.6742 \\
+    &\multicolumn{2}{c|}{Transformer Encoder} & 0.7643 & 0.2640 & 0.9103 & 0.6313 & 0.0365 & 0.0688 \\
+    &\multicolumn{2}{c|}{BiLSTM}  & 0.9485 & 0.7533 & 0.9463 & 0.7135 & 0.6860 & 0.6995 \\
+    &\multicolumn{2}{c|}{GSSBL-woCL}   & \textbf{0.9552} & \textbf{0.7779} & \textbf{0.9521} & 0.7376 & \textbf{0.7352} & \textbf{0.7364} \\
+    \bottomrule
+    \end{tabular}
+    \begin{flushright}
+        \noindent{GSSBL-woCL denotes the proposed method without SGCLM, since SGCLM cannot be applied in experiments using primary-character tags.}
+    \end{flushright}
+\end{table}
+
+%需要一个主子段的实验引入
+%新写的
+
+The first experiment aims to evaluate the model’s performance when only primary-character tags are used. Sentences annotated with primary-character tags are employed as input. As the SGCLM cannot be applied under this setting, the character glyphic embeddings remain unoptimised. All other experimental configurations are kept consistent with those in the empirical study. The results of this experiment serve as a baseline for comparison with the secondary-character tag experiments.
+
+%这里是全新的段，拆解了3.4的结果分析，保留了第一个、第三个分析。另外要不要在表中写一下gssbl子字的结果作为对比？
+%编号先一放
+%The empirical results of different models are shown in Table~\ref{result-primary}, from which the following observations can be drawn. First, GSSBL achieves better performance when using secondary-character tags compared with primary-character tags. Comparative experiments indicate that some baseline models suffer performance degradation when processing secondary-character tags, reflecting their limited generalisation under structural complexity and uneven feature distribution. Leveraging its dual-tower architecture and embedding alignment mechanism, GSSBL effectively models semantic and glyphic features of secondary-character tags, achieving performance improvements compared with using primary-character tags. Third, GSSBL achieves the best performance separately on both primary-character tags and secondary-character tags. This indicates that the model effectively leverages semantic and glyphic information, achieving comprehensive gains and maintaining stable advantages across varying complexity and granularity.这是原来的移动过来的东西。我怕用词啥的有问题，就基本没改什么
+
+The results of association score prediction methods using primary-character tags are shown in Table~\ref{result-primary}, from which two main observations can be drawn. First, GSSBL achieves better performance when using secondary-character tags compared with primary-character tags. Comparative experiments reveal that some baseline models suffer performance degradation with secondary-character tags, reflecting their limited generalisation under structural complexity and uneven feature distribution. By leveraging its dual-tower architecture and embedding alignment mechanism, GSSBL effectively models semantic and glyphic features of secondary-character tags, resulting in improved performance compared with using primary-character tags. Second, GSSBL also achieves the best performance using primary-character tags. This indicates that the model effectively leverages semantic and glyphic information, achieving comprehensive gains and maintaining stable advantages across varying complexity and granularity.
+
+%这里是留给bothtag的地方
+%duanS4new6
+%2次 
+%han_v9:这一段好突兀啊 根本不知道为啥在这出现
+%han_v9:由于咱们在正文里面提了我们是使用了一阶标签的，因此，你这里可以少写，这个我记得有融合character的实验，这段挪过去或者删了，反正就不合理。
+%done 反成了两段，一个讲实验设置、一个说结果
+In the second experiment, a structure has been designed that leverages both primary-character and secondary-character tag information simultaneously. It forms a fused representation with twice the dimensionality of a single tag character embedding. For each character, the glyph embeddings from the VAEs and the semantic embeddings from SGNS, corresponding to both the primary-character and secondary-character tags, are respectively concatenated to form the glyph and semantic vectors. The two vectors are fed into the sentence embedding learning module, as discussed in Section~\ref{sec:sentence-embedding}, to learn fused sentence embeddings. These sentence embeddings are then passed to the classification module, as described in Section~\ref{sec:classification}, to compute association scores. This new fused sentence embedding enables fusion within each modality across both tags. 
+
+The results of the second experiment as shown in Table~\ref{bothtag}, indicate that this structure improves performance for some baseline methods but provides only limited benefit for GSSBL. The reason for this may lie in redundancy and uneven feature distribution, reduced generalisation in high-dimensional space. The expansion of dimension also increases optimisation complexity, potentially affecting performance. Additionally, the direct concatenation of character semantic embedding and character glyphic embedding may obscure temporal variations in secondary-character tags.
+
+%biaonew2
+%这个是both的表
+%2次
+%8%Classification Performance of Various Comparison Methods using character embeddings learned from primary-character tags
+%Classification Performance of Various Comparison Methods using character embeddings learned from both tags
 
 \begin{table}[!htbp]
     \centering
-    \caption{Ablation Study on the Effect of Different Initial Character Embeddings}\label{ab-qianru}
-    \begin{tabular}{cc|cc}
+    \caption{Classification performance of various comparison Methods using character embeddings learned from both tags.}
+    \label{bothtag}
+    \begin{tabular}{c|cc|cccccc}
+    \toprule
+    \multirow{3}{*}{\textbf{Model Type}} & \multicolumn{2}{c|}{\textbf{Method}} & \multicolumn{6}{c}{\textbf{Evaluation Metric}} \\
+    \cmidrule{2-9}
+    & \textbf{Sentence} & \multirow{2}{*}{\textbf{Classifier}} & \multirow{2}{*}{AUROC} & \multirow{2}{*}{AUPR} & \multirow{2}{*}{Accuracy} & \multirow{2}{*}{Precision} & \multirow{2}{*}{Recall} & \multirow{2}{*}{F1 score} \\
+    & \textbf{Embedding} & & & & & & & \\
+    \toprule
+    \multirow{15}{*}{\textbf{Two-Stage}} &\multirow{5}{*}{SIF} 
+         & LR        & 0.6947 & 0.1554 & 0.7885 & 0.1870 & 0.3963 & 0.2541 \\
+    &    & SVM       & 0.6978 & 0.1556 & 0.8574 & 0.1841 & 0.1656 & 0.1744 \\
+    &    & XGBoost   & 0.8622 & 0.5229 & 0.9259 & 0.7338 & 0.2912 & 0.4170 \\
+    &    & LightGBM  & 0.8473 & 0.4751 & 0.9188 & 0.7842 & 0.1476 & 0.2484 \\
+    &    & MLP       & 0.8476 & 0.4764 & 0.9193 & 0.7640 & 0.1640 & 0.2698 \\
+    \cmidrule{2-9}
+    &\multirow{5}{*}{USIF}
+         & LR        & 0.6963 & 0.1562 & 0.7842 & 0.1832 & 0.3969 & 0.2507 \\
+    &    & SVM       & 0.6976 & 0.1560 & 0.8564 & 0.1823 & 0.1662 & 0.1739 \\
+    &    & XGBoost   & 0.8738 & 0.5530 & 0.9290 & 0.7533 & 0.3267 & 0.4557 \\
+    &    & LightGBM  & 0.8616 & 0.5138 & 0.9222 & 0.8134 & 0.1881 & 0.3056 \\
+    &    & MLP       & 0.8465 & 0.4672 & 0.9187 & 0.7334 & 0.1684 & 0.2728 \\
+    \cmidrule{2-9}
+    &\multirow{5}{*}{BoW} 
+         & LR        & 0.6280 & 0.1419 & 0.7993 & 0.1543 & 0.2693 & 0.1962 \\
+    &    & SVM       & 0.6618 & 0.2195 & 0.8296 & 0.2546 & 0.4529 & 0.3259 \\
+    &    & XGBoost   & 0.8005 & 0.4323 & 0.9176 & 0.7851 & 0.1295 & 0.2223 \\
+    &    & LightGBM  & 0.8134 & 0.4432 & 0.9150 & \textbf{0.8187} & 0.0844 & 0.1530 \\
+    &    & MLP       & 0.7952 & 0.3618 & 0.9117 & 0.7551 & 0.0448 & 0.0841 \\
+    \midrule
+    \multirow{4}{*}{\textbf{End-to-End}} 
+    &\multicolumn{2}{c|}{TextCNN} & 0.9478 & 0.7174 & 0.9462 & 0.7362 & 0.6387 & 0.6837 \\
+    &\multicolumn{2}{c|}{Transformer Encoder} & 0.7855 & 0.3118 & 0.9114 & 0.5627 & 0.1311 & 0.2118 \\
+    &\multicolumn{2}{c|}{BiLSTM}  & 0.9533 & 0.7602 & 0.9470 & 0.7152 & 0.6952 & 0.7050 \\
+    &\multicolumn{2}{c|}{GSSBL}   & \textbf{0.9581} & \textbf{0.7760} & \textbf{0.9505} & 0.7269 & \textbf{0.7307} & \textbf{0.7288} \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+%\noindent{GSSBL-woCL denotes the proposed method without SGCLM.}
+%duanS3.5old3
+%han_v9wait: 这不是消融实验，
+%han_v9wait: 我们整体改一下，the effect of contrastive learning，the effect different character semantic embedding methods， the effect of different sentence embedding learning methods
+%1031：这个是初始嵌入的实验我这个主题句是拿不准这三个实验用什么词来概括，就先用123表示了
+
+%这里的冒号是您的第四版修改添加的，我这里搬了过来没做修改，怕改坏了。。
+%也是分了两段
+The third experiment in this section examines how different initial character semantic embedding learning methods affect model performance. The experiments are based on the proposed method with only the semantic character embeddings modified. The three tested character semantic embedding method include SGNS from Word2Vec, which serves as the character semantic embedding used in proposed GSSBL, and two other representative character semantic embedding methods for comparison: CBOW-NEG~\cite{mikolov2013distributed} from Word2Vec and GloVe~\cite{pennington2014glove}. SGNS models semantic relationships by predicting context words, capturing fine-grained character-level semantics. GloVe captures global semantic relationships by leveraging word co-occurrence statistics from large general corpora. CBOW-NEG is effective in capturing contextual semantic information, especially when training data is limited and sparse. The character semantic embedding dimension for all three models is 512, and all other model parameters remain consistent with the full model. Experiments are conducted at both the primary-character and secondary-character tags to compare the performance differences of different initial character semantic embeddings at different granularities. 
+
+As shown in Table~\ref{ab-qianru}, two key observations can be drawn from the results. First, secondary-character tag semantic embeddings outperform their primary-character tag counterparts across all three character semantic embedding methods. This demonstrates that incorporating finer-grained secondary-character tag information can effectively enhance model performance. This trend suggests that secondary-character tag representations, compared to primary-character tags, are more likely to capture subtle details in OBIs, thus improving the model’s discriminative capability. Second, among the three semantic embedding methods, SGNS achieves the highest scores AUPR, accuracy, precision and F1 score. This indicates that SGNS may be more suitable for capturing semantic relationships in the oracle bone context. Compared to CBOW-NEG and GloVe, SGNS’s mechanism of predicting context words allows it to more effectively model fine-grained relationships between characters.
+
+%biaoold6
+%5
+%表格就不动了，caption改了下
+%您看看这个表头可以不？
+\begin{table}[!htbp]
+    \centering
+    \caption{Experiment on the Effect of Different Character Semantic Embedding learning methods}\label{ab-qianru}
+    \begin{tabular}{cc|cccccc}
         \toprule
-        \textbf{Embedding} & \textbf{Char Tag} &   AUPR & AUROC    \\
+        \textbf{Character} & \textbf{Character} & \multirow{2}{*}{AUROC} & \multirow{2}{*}{AUPR} & \multirow{2}{*}{Accuracy} & \multirow{2}{*}{Precision} & \multirow{2}{*}{Recall} & \multirow{2}{*}{F1 score} \\
+            \textbf{Embedding} & \textbf{Tag} & & & & & & \\
         \toprule
-        \multirow{2}{*}{CBOW-NEG}  & Primary    & 0.7566 & 0.9625     \\
-                  & Secondary  & 0.7974 & 0.9686     \\
+        \multirow{3}{*}{SGNS}     
+            & Primary   & 0.9552 & 0.7779 & 0.9521 & 0.7376 & \textbf{0.7352} & 0.7364  \\
+            & Secondary & 0.9583 & \textbf{0.7862} & \textbf{0.9531} & \textbf{0.7505} & 0.7255 & \textbf{0.7377}  \\
+            & Both      & 0.9581 & 0.7760 & 0.9505 & 0.7269 & 0.7307 & 0.7288  \\
         \midrule
-        \multirow{2}{*}{SGNS}     & Primary    & 0.7897 & 0.9659     \\
-                  & Secondary  & \textbf{0.8017} & \textbf{0.9691}     \\
+        \multirow{3}{*}{CBOW-NEG}  
+            & Primary    & 0.9568 & 0.7784 & 0.9512 & 0.7371 & 0.7210 & 0.7289  \\
+            & Secondary  & 0.9572 & 0.7810 & 0.9521 & 0.7441 & 0.7217 & 0.7327  \\
+            & Both       & 0.9574 & 0.7693 & 0.9508 & 0.7317 & 0.7261 & 0.7289  \\
         \midrule
-        \multirow{2}{*}{GloVe}     & Primary    & 0.7683 & 0.9631     \\
-                  & Secondary  & 0.7997 & 0.9680     \\
+        \multirow{3}{*}{GloVe}     
+            & Primary    & 0.9571 & 0.7804 & 0.9521 & 0.7477 & 0.7154 & 0.7312  \\
+            & Secondary  & 0.9571 & 0.7853 & 0.9521 & 0.7469 & 0.7175 & 0.7318  \\
+            & Both       & \textbf{0.9585} & 0.7780 & 0.9510 & 0.7346 & 0.7239 & 0.7291  \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\subsection{Case Study}
+\subsection{Effect of Different Sentence Embedding Methods}
+%这里搬讨论的trans内容
 
-The model’s practical effectiveness is further assessed through two real-world OBI rejoining case studies. These case studies are conducted on our best-performing model, GSSBL-Fine-Cl. In each case, the inscriptions originally belonged to the same oracle bone fragment but were separated due to fragmentation and now exist on different rubbing images. These examples demonstrate that our model is capable of correctly identifying same-fragment relationships, even when inscriptions are physically distant and disconnected in the original images.
+%han_v9: 这个地方挪到results，加一段，the effect of sentence embedding learning methods。先说一下，你用了bilstm再说一下，另一个吸引人的是 tranformer，虽然对比中有一个transformer，但是和我们算法架构还有区别，因此分析analyse the effect of sentence embedding learning method 我们又做了额外的实验，后面跟你这个东西
+%duanS4new3
+%移动到3.7
+%2
+%2次
+%A comparative analysis with a Transformer encoder was conducted to evaluate the GSSBL architecture's suitability for OBIs. For a direct comparison, a 12-layer Transformer encoder model was implemented, using the [CLS] token for fused sentence embeddings while keeping all other components consistent with the proposed GSSBL model. Hereinafter, unless otherwise specified, “Transformer” refers to the Transformer encoder in this section. The results, shown in Table~\ref{trans}, indicate that the Transforme based model performed worse than the BiLSTM GSSBL model on all evaluated metrics.
+%in this section还是in this subsection，或者这个干脆删了
 
-The first case examines an instance of two OBI sentences rejoined from adjacent fragments, as shown in Figure~\ref{case1}. These fragments, designated H51 and H64, were originally recorded in the Oracle Bone Inscription Collection \cite{jgwhj}, and the rejoining instance is based on \cite{WZBW202309001016}. Inscription A, on fragment H51, can be interpreted as “Divination: Did many people perish in a certain locality because of warfare?” Inscription B, on fragment H64, is partly missing, but from the surviving characters one can be interpreted as “Divination: heavy personnel losses in warfare, prayers for divine protection.” The two inscriptions display parallel sentence structures and a shared theme. Moreover, the close fit of the broken edges and the consistent handwriting style across the two fragments further justify their rejoining. In the GSSBL-Fine-Cl model’s evaluation, this pair achieved a similarity score of \textbf{0.9093}, ranking within the top \textbf{7.04\%} of all evaluated pairs, which means that the two fragments can be rejoined.
+%修改后的：这里用a对吗？然后Siamese需不需要加
+%han_v11:  For a direct comparison, a 12-layer Transformer encoder model is xx, 变成，For a direct comparsion, in GSSBL, the BiLSTM module is replced with a 12-layer Transformer encoder, using the [CLS] toekn for the sentence embedding, while keeping all other components consistent with the proposed GSSBL model. In the section, Transformer refers to the Transformer encoder unless otherwise specified. The results, shown in Table~\ref{trans}, suggest that the Transformer version of GSSBL performed worse than the BiLSTM version of GSSBL o all evaluated metrics.
+
+%In the proposed GSSBL, a BiLSTM is employed to learn sentence embeddings. However, given the potential of Transformer architectures, we further conduct an additional experiment. In this experiment, the BiLSTM module in GSSBL is replaced with a Transformer encoder to evaluate the suitability of the GSSBL framework for OBIs. For a direct comparison, a 12-layer Transformer encoder model is implemented, using the [CLS] token for fused sentence embeddings while keeping all other components consistent with the proposed GSSBL model. Hereinafter, unless otherwise specified, “Transformer” refers to the Transformer encoder in this section. The results, shown in Table~\ref{trans}, indicate that the Transformer based model performed worse than the BiLSTM GSSBL model on all evaluated metrics.
 
 
+In the proposed method, a BiLSTM is employed to learn sentence embeddings. However, given the potential of Transformer architectures, we further conduct an additional experiment. In this experiment, the BiLSTM module in GSSBL is replaced with a Transformer encoder to evaluate the suitability of the GSSBL framework for OBIs. For a direct comparison, in GSSBL, the BiLSTM module is replaced with a 12-layer Transformer encoder, using the [CLS] toekn for the sentence embedding, while keeping all other components consistent with the proposed GSSBL model. In this section, Transformer refers to the Transformer encoder unless otherwise specified. The results, shown in Table~\ref{trans}, suggest that the Transformer version of GSSBL is less effective than the BiLSTM version of GSSBL in all evaluated metrics.
+
+%biaonew1
+%1
+%7
+%wtz 回复信中的\scalebox这里不可用，会报错
+%han_v9 一样放到实验里面
+%han_v9done: Comparison between the BiLSTM-version and Transformer-version of the GSSBL model
+    \begin{table}[!htbp]
+        \centering
+        \caption{Comparison between the BiLSTM-version and Transformer-version of the GSSBL model. }\label{trans}
+        \begin{tabular}{c|c|cccccc}
+            \toprule
+            \textbf{Sentence} & \textbf{Character} & \multirow{2}{*}{AUROC} & \multirow{2}{*}{AUPR} & \multirow{2}{*}{Accuracy} & \multirow{2}{*}{Precision} & \multirow{2}{*}{Recall} & \multirow{2}{*}{F1 score} \\
+            \textbf{Embedding} & \textbf{Tag} & & & & & & \\
+            \toprule
+            \multirow{5}{*}{\shortstack{\textbf{Transformer}\\\textbf{Encoder}}} 
+            & Primary       & 0.8288 & 0.3836 & 0.9133 & 0.5626 & 0.2172 & 0.3124 \\
+            & Secondary     & 0.8283 & 0.3846 & 0.9139 & 0.5732 & 0.2099 & 0.3067 \\
+            & Secondary-CL  & 0.8295 & 0.3863 & 0.9135 & 0.5651 & 0.2176 & 0.3130 \\
+            & Both           & 0.8365 & 0.4189 & 0.9181 & 0.6107 & 0.2287 & 0.3184 \\
+            & Both-CL        & 0.8425 & 0.4319 & 0.9190 & 0.6184 & 0.2444 & 0.3367 \\
+            \midrule
+            \multirow{5}{*}{\textbf{BiLSTM}}     
+            & Primary       & 0.9552 & 0.7779 & 0.9521 & 0.7376 & \textbf{0.7352} & 0.7364 \\
+            & Secondary     & 0.9566 & 0.7809 & 0.9526 & 0.7430 & 0.7323 & 0.7376 \\
+            & Secondary-CL  & \textbf{0.9583} & \textbf{0.7862} & \textbf{0.9531} & \textbf{0.7505} & 0.7255 & \textbf{0.7377} \\
+            & Both         & 0.9580 & 0.7745 & 0.9504 & 0.7267 & 0.7300 & 0.7283 \\
+            & Both-CL      & 0.9581 & 0.7760 & 0.9505 & 0.7269 & 0.7307 & 0.7288 \\
+            \bottomrule
+        \end{tabular}
+        \begin{flushright}
+            \noindent{``-CL'' denotes character glyphic embeddings enhanced by SGCLM.}
+        \end{flushright}
+    \end{table}
+
+%duanS4new4
+%3
+%2次
+%放实验里面
+This performance disparity is attributed to the structural properties of each model and the characteristics of the dataset. The Transformer's self-attention mechanism, which relies on extensive parameters to capture global context, is prone to overfitting local noise in short, low-resource texts like OBIs \cite{rahman2025roberta, aziz2023leveraging, chen2025bilstm}. In contrast, the BiLSTM's more compact architecture, with its effective gating mechanisms, shows better performance in capturing local dependencies \cite{chen2025bilstm}. Given that OBI sentences are typically short and rely heavily on local context, the BiLSTM's sequential processing aligns better with the data characteristics, whereas the Transformer's global attention may dilute critical information \cite{aziz2023leveraging}. Consequently, the BiLSTM achieves a superior balance of performance and stability for this specific task and corpus.
+
+\subsection{Case Studies} \label{sec:case}
+
+%duanS3.6old1
+The model’s practical effectiveness is further assessed through three real-world OBI rejoining case studies. These case studies are conducted on our best-performing model, GSSBL-Fine-CL. In each case, the inscriptions originally belonged to the same oracle bone fragment but are separated due to fragmentation and now exist on different rubbing images. These examples demonstrate that our model is capable of correctly identifying same-fragment relationships, even when inscriptions are physically distant and disconnected in the original images.
+
+%duanS3.6old2
+The first case examines an instance of two OBI sentences rejoined from adjacent fragments, as shown in Figure~\ref{case1}. These fragments, designated H51 and H64, are originally recorded in the Oracle Bone Inscription Collection \cite{jgwhj}, and the rejoining instance is based on \cite{WZBW202309001016}. Inscription A, on fragment H51, can be interpreted as “Divination: Did many people perish in a certain locality because of warfare?” Inscription B, on fragment H64, is partly missing, but from the surviving characters one can be interpreted as “Divination: heavy personnel losses in warfare, prayers for divine protection.” The two inscriptions display parallel sentence structures and a shared theme. Moreover, the close fit of the broken edges and the consistent handwriting style across the two fragments further justify their rejoining. In the GSSBL-Fine-CL model’s evaluation, this pair achieved a association score of \textbf{0.9097}, ranking within the top \textbf{6.02\%} of all evaluated pairs, which means that the two fragments can be rejoined.
+
+%tuold4
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=1\linewidth]{pic/case1.png} 
-\caption{Fragments H51 and H64 from the Oracle Bone Inscription Collection \cite{jgwhj}. The two fragments were conjoined based on close fit of broken edges and consistent handwriting style. This pair of inscriptions are continuous in format and closely linked in content, revolving around war-induced casualties.\label{case1}}
+\caption{Fragments H51 and H64 from the Oracle Bone Inscription Collection \cite{jgwhj}. The two fragments are conjoined based on close fit of broken edges and consistent handwriting style. This pair of inscriptions are continuous in format and closely linked in content, revolving around war-induced casualties.\label{case1}}
 \end{figure}   
-\unskip
 
 
-The second case examines an instance of two OBI sentences rejoined from non-adjacent oracle bone fragments as shown in Figure~\ref{case2}. This rejoining case was proposed by oracle bone scholar \footnote{(\url{https://www.xianqin.org/blog/archives/1460.html}, accessed on 17 February 2025)}, and comprises fragments H30106, H30107, H30108, H30110, and the remotely conjoined H30109. All fragments originate from the Oracle Bone Inscription Collection \cite{jgwhj}. These fragments can be rejoined because they share a common archaeological context, exhibit closely matching edges, and contain highly similar divinatory content. The pair of OBI sentences used in this case appears on the non-adjacent fragments H30107 and H30109. These two divinatory inscriptions are basically identical in sentence structure and theme. The divinatory can be interpreted as “The Shang king should not perform rain sacrifice.” In the GSSBL-Fine-Cl model’s evaluation, this pair achieved a similarity score of \textbf{1.0000}, ranking within the top \textbf{0.46\%} of all evaluated pairs, which means that the two fragments can be rejoined.
+%duanS3.6old3
+The second case examines an instance of two OBI sentences rejoined from non-adjacent oracle bone fragments as shown in Figure~\ref{case2}. This rejoining case was proposed by oracle bone scholar \footnote{(\url{https://www.xianqin.org/blog/archives/1460.html}, accessed on 17 February 2025)}, and comprises fragments H30106, H30107, H30108, H30110, and the remotely conjoined H30109. All fragments originate from the Oracle Bone Inscription Collection \cite{jgwhj}. These fragments can be rejoined because they share a common archaeological context, exhibit closely matching edges, and contain highly similar divinatory content. The pair of OBI sentences used in this case appears on the non-adjacent fragments H30107 and H30109. These two divinatory inscriptions are basically identical in sentence structure and theme. The divinatory can be interpreted as “The Shang king should not perform rain sacrifice.” In the GSSBL-Fine-CL model’s evaluation, this pair achieved a association score of \textbf{1.0000}, ranking within the top \textbf{0.38\%} of all evaluated pairs, which means that the two fragments can be rejoined.
 
+%tuold5
 \begin{figure}[!htbp]
 \centering
 \includegraphics[height=0.8\textheight]{pic/case2.png} 
 \caption{Fragments H30106, H30107, H30108, H30109 (remotely conjoined), and H30110 from the Oracle Bone Inscription Collection \cite{jgwhj}. The pair of OBI sentences used in this case appears on the non-adjacent fragments H30107 and H30109. These two divinatory inscriptions are basically identical in sentence structure and theme, and their meanings are highly similar.\label{case2}}
 \end{figure}   
-\unskip
+
+%tunew3
+%8
+\begin{figure}[!htbp]
+\centering
+\includegraphics[height=0.75\textheight]{pic/case3.png} 
+\caption{Fragments H29737 and H30922 from the Oracle Bone Inscription Collection \cite{jgwhj}. The reverse sides of the two oracle bone fragments have matching drill marks, thickness, and color, and their inscription sequences are continuous, indicating that they can be rejoined. Inscription B in H30922 is relatively complete, containing the type of ritual (ascending sacrifice) and the divination content (whether it would rain); Inscription B in H29737 omits the key verb and object, leaving only a temporal adverbial, requiring contextual supplementation. Due to the incomplete information, the model assigned a low score, resulting in an incorrect prediction.}\label{case3}
+\end{figure} 
+
+%duanS3.6new1
+%4
+The third case illustrates an instance where the model incorrectly classified a rejoinable pair as non-rejoinable. As shown in Figure~\ref{case3}, the fragments are numbered H29737 and H30922, originally recorded in the Oracle Bone Inscription Collection \cite{jgwhj}. This rejoining instance was proposed by an oracle bone scholar \footnote{(\url{https://www.xianqin.org/blog/archives/1237.html}, accessed on 12 October 2025)}. The expert determined that the two fragments could be rejoined based on the alignment of drill marks, thickness, and color on the reverse sides of the bones, as well as the continuity of the inscription sequences. Inscription A on fragment H29737 can be interpreted as “Divination: on a certain day in the future?” and inscription B on fragment H30922 as “Divination: performing a ritual in the evening, will it rain?” Both inscriptions are ellipses and involve temporal information. Due to the omission of key verbs and objects, the semantic content is incomplete and requires contextual supplementation, making it difficult for the model to accurately capture the relationship between the sentences. Consequently, the association score for this pair is only \textbf{0.0207}, ranking within the top \textbf{12.66\%} of all evaluated pairs, resulting in a misclassification. It reflects the model’s limited flexibility when handling ellipsis inscriptions and its high dependence on semantic completeness and contextual information of the oracle bone texts.
+
+%sectionnew1
+\subsection{Hyper-parameter Sensitivity Analysis}
+
+The hyper-parameter experiments are conducted to compare the impact of different hyper-parameters on model performance, while also analysing the model’s sensitivity to parameter variations to evaluate its robustness. The experiments focus on key parameters involved in the training of the GSSBL model taking the secondary-character tags. In the experiments, one hyper-parameter is varied at a time while keeping all others fixed. The default parameter settings are batch size $b = 64$, number of negative samples in SGNS $k = 5$, dimensions of the character semantic embedding and character glyphic embedding $w = 512$, sentence embedding dimension $s = 512$, learning rate $l = 5 \times 10^{-4}$, with a randomly initialized seed. 
+
+%han_v9done: 你的实验都用一般现在时：全文检查 maintained 改成shows
+%han_v9done: demonstrating strong stability and generalisation capability. -> demostrating strong robustness against various hyper-parameter settings.
+Table~\ref{hyper-parameter} presents the effects of hyper-parameter choices on the experimental results. The model shows high performance across different combinations. In particular, when the batch size $b = 128$, the F1 score reaches its peak value of 0.7443, while setting the random seed to 512 yields the highest AUPR of 0.7897. From a sensitivity analysis perspective, GSSBL is most sensitive to learning rate adjustments. When the learning rate $l$ decreases from $1 \times 10^{-3}$ to $1 \times 10^{-6}$, the model’s performance drops markedly, suggesting that effective training requires an appropriate learning rate range. In contrast, GSSBL exhibits relatively high stability across hyper-parameters other than the learning rate. They result only in slight performance fluctuations, with F1 score variations generally ranging from \textbf{0.006} to \textbf{0.015} and AUPR fluctuations typically remaining below \textbf{0.005}. Overall, GSSBL shows high classification accuracy, demonstrating strong robustness against various hyper-parameter settings.
+
+%Table~\ref{hyper-parameter} presents the effects of hyper-parameter choices on the experimental results. The model shows high performance across different combinations. In particular, when the sentence embedding dimension $s = 256$, AUPR and F1 score reach their peak values of 0.8258 and 0.7461, respectively, while the number of negative samples $k = 3$ yield the highest precision of 0.7395. From a sensitivity analysis perspective, GSSBL exhibits relatively high stability across different hyper-parameter settings, with F1 score variations not exceeding 0.004. The GSSBL is most sensitive to learning rate adjustments; when $l$ decreases from $1 \times 10^{-3}$ to $1 \times 10^{-6}$, performance drops significantly, indicating that the training process requires a suitable learning rate range. In contrast, variations in batch size and embedding dimensionality have limited impact on performance, causing only slight fluctuations. Overall, GSSBL shows high classification accuracy, demonstrating strong robustness against various hyper-parameter settings.
+
+%biaonew3
+\begin{table}[!htbp]
+    \centering
+    \caption{Result of hyper-parameter experiments on GSSBL using the secondary-character tag.}
+    \label{hyper-parameter}
+    \begin{tabular}{cc|cccccc}
+        \toprule
+        \multicolumn{2}{c|}{\textbf{Hyper-parameter}} &  AUROC & AUPR & Accuracy & Precision & Recall & F1 score  \\
+        \midrule
+        \multicolumn{2}{c|}{baseline}     
+            & 0.9583 & 0.7862 & 0.9531 & 0.7505 & 0.7255 & 0.7377  \\
+        \midrule
+        \multirow{3}{*}{$b$}     
+            & 32  & 0.9585 & 0.7804 & 0.9509 & 0.7325 & 0.7261 & 0.7291   \\
+            & 128 & 0.9568 & 0.7848 & \textbf{0.9547} & \textbf{0.7659} & 0.7240 & \textbf{0.7443}   \\
+            & 256 & 0.9548 & 0.7782 & 0.9527 & 0.7515 & 0.7176 & 0.7340   \\
+        \midrule
+        \multirow{3}{*}{$k$}     
+            & 1  & 0.9579 & 0.7885 & 0.9528 & 0.7473 & 0.7277 & 0.7373   \\
+            & 3  & 0.9574 & 0.7888 & 0.9526 & 0.7476 & 0.7233 & 0.7352   \\
+            & 10 & 0.9585 & 0.7884 & 0.9537 & 0.7526 & 0.7317 & 0.7419   \\
+        \midrule
+        \multirow{3}{*}{$w$}     
+            & 128  & 0.9590 & 0.7863 & 0.9532 & 0.7515 & 0.7258 & 0.7383   \\
+            & 256  & \textbf{0.9593} & 0.7870 & 0.9536 & 0.7546 & \textbf{0.7269} & 0.7404   \\
+            & 1024 & 0.9584 & 0.7799 & 0.9519 & 0.7413 & 0.7246 & 0.7327   \\
+        \midrule
+        \multirow{3}{*}{$s$}     
+            & 128  & 0.9565 & 0.7811 & 0.9507 & 0.7277 & 0.7336 & 0.7306   \\
+            & 256  & 0.9578 & 0.7820 & 0.9528 & 0.7423 & 0.7372 & 0.7397   \\
+            & 1024 & 0.9588 & 0.7822 & 0.9526 & 0.7471 & 0.7246 & 0.7356   \\
+        \midrule
+        \multirow{4}{*}{$l$}     
+            & 1e-3 & 0.9574 & 0.7704 & 0.9488 & 0.7193 & 0.7177 & 0.7184   \\
+            & 1e-4 & 0.9509 & 0.7571 & 0.9489 & 0.7279 & 0.7003 & 0.7138   \\
+            & 1e-5 & 0.8918 & 0.5385 & 0.9278 & 0.7081 & 0.3510 & 0.4692   \\
+            & 1e-6 & 0.7501 & 0.2736 & 0.9114 & 0.5968 & 0.0815 & 0.1434   \\
+        \midrule
+        \multirow{3}{*}{seed}     
+            & 42   & 0.9573 & 0.7807 & 0.9523 & 0.7450 & 0.7248 & 0.7347   \\
+            & 512  & 0.9578 & \textbf{0.7897} & 0.9534 & 0.7529 & 0.7261 & 0.7393   \\
+            & 2025 & 0.9580 & 0.7859 & 0.9534 & 0.7531 & 0.7266 & 0.7395   \\
+        \bottomrule
+    \end{tabular}
+    \begin{flushright}
+        \noindent{The default parameter settings are $b = 64$, $k = 5$, $w = 512$, $s = 512$, $l = 5 \times 10^{-4}$, with a randomly initialized seed.}
+    \end{flushright}
+\end{table}
+
 
 \section{Discussion}\label{sec13}
+%han_v9: 大概思路。1。我们提了新数据，这个新数据有什么好的 2. 我们提了新方法，这个新方法有什么好的。3.我们这个新数据和方法对于甲骨专家有什么帮助--这个可拓展。4. 我们的数据集有什么问题 5. 我们的算法有什么问题。 6. 未来的工作
+
+%duanS4old1
+%1。我们提了新数据，这个新数据有什么好的
+In this study, we propose a multi-modal dataset, OBID-ACR, for OBI fragment association analysis. The dataset consists of 17,049 divinatory sentences collected from 5,446 oracle bone fragments, providing structured support for sentence-level research on the relationship between glyphic and semantic representations, as well as for fragment association prediction tasks. 
+
+%duanS4new3
+%biaonew1
+%duanS4new4
+%移动到3.7
+
+%duanS4old2
+%2. 
+%我们提了新方法，这个新方法有什么好的。
+Furthermore, we propose a dual-tower sentence encoding model, GSSBL, which integrates glyphic and semantic information, and introduced SGCLM to enhance the quality of character glyphic embeddings. To our knowledge, this is the first attempt to model and predict fragment association based on sentence embeddings in oracle bone studies. Experimental results show that the proposed model outperforms baseline models. This holds across all evaluation metrics under both primary-character and secondary-character tags. In particular, using secondary-character tags leads to more fine-grained sentence representations with richer semantic granularity, which contributes to improved accuracy in fragment association prediction. The proposed SGCLM module also enhances the discriminative capacity of character glyphic embeddings by using contrastive learning.
+
+% This framework provides a potential syntactic and semantic foundation for future automated rejoining assistance in oracle bone research. %We formally introduce the fragment association prediction problem in this paper, offering a computational modelling framework for understanding contextual semantic connections between divinatory statements. This framework provides a potential syntactic and semantic foundation for future automated rejoining assistance in oracle bone research.
 
 
-In this study, we constructed a multimodal dataset, OBID-ACR, for OBI fragment association analysis. The dataset consists of 17,049 divinatory sentences collected from 5,446 oracle bone fragments, providing structured support for sentence-level research on the relationship between glyphic and semantic representations, as well as for fragment association prediction tasks. Furthermore, we proposed a dual-tower sentence encoding model, GSSBL, which integrates glyphic and semantic information, and introduced SGCLM to enhance the quality of glyphic embeddings. To our knowledge, this is the first attempt to model and predict fragment association based on sentence embeddings in oracle bone studies.
+%duanS4new1
+%2次
+%5 Newly added fifth paragraph
+%3.我们这个新数据和方法对于甲骨专家有什么帮助--这个可拓展。
+% 原本的：GSSBL can serve as a flexible AI-based tool to assist archaeologists and historians in analysing oracle bone fragments. This tool provides support in the following aspects. First, GSSBL can be used in the task of oracle bone rejoining. GSSBL can effectively predict association scores, which can be combined with edge-based analysis of fragments to evaluate potential joining. Second, GSSBL can be applied to text analysis tasks. These association scores can be extended to thematic clustering, semantic association analysis, and contextual matching. This approach can potentially reveals semantic distribution patterns and association scores across different inscriptions. Third, GSSBL can assist the task of the authentication of oracle bones. Researchers can leverage the association scores provided by GSSBL to infer the provenance, period, or writing system of the bones. This information provides support for authentication, provenance tracing, and studies of script evolution.
+% 老师修改
+GSSBL can serve as a flexible AI-based tool to assist archaeologists and historians in analysing oracle bone fragments. This tool provides support in the following aspects. First, GSSBL can be used in the task of oracle bone rejoining. GSSBL can effectively predict association scores, which can be combined with edge-based analysis of fragments to evaluate potential joining. Second, GSSBL can be applied to text analysis tasks. These association scores can be extended to thematic clustering, semantic association analysis, and contextual matching. This approach can potentially reveal semantic distribution patterns and association scores across different inscriptions. Third,  GSSBL can be deployed for the digital restoration of damaged inscriptions. For fragments with partial textual loss, the model can propose semantically plausible completions for missing characters or phrases based on the association scores between the remaining sentences and all candidate characters or sentences.
 
-Experimental results demonstrate that our proposed model significantly outperforms baseline models. This holds across all evaluation metrics under both primary-character and secondary-character tags. In particular, using secondary-character tags leads to more fine-grained sentence representations with richer semantic granularity, which contributes to improved accuracy in fragment association prediction. The SGCLM also enhances the discriminative capacity of glyphic embeddings, thereby further improving the representational quality of sentence embeddings. We formally introduce the fragment association prediction problem in this paper, offering a computational modelling framework for understanding contextual semantic connections between divinatory statements. This framework provides a potential syntactic and semantic foundation for future automated rejoining assistance in oracle bone research.
+%By leveraging the contextual information from the legible portions and its trained knowledge of the corpus, GSSBL can generate hypothetical completions to guide scholarly interpretation and reconstruction.
 
-There are two limitations of the proposed dataset. First, due to the limited scale and content of existing digitized OBI textual datasets, OBID-ACR cannot cover all extant OBI data, which results in a degree of incompleteness. To address this issue, future work should further promote the digitization of OBI, thereby expanding the dataset’s coverage and representativeness. Second, the previous digitized OBI datasets lack a unified encoding scheme for oracle characters, which restricts cross-dataset integration. To overcome this limitation, standardized encoding guidelines should be established, enabling the combined use of multiple datasets and providing a consistent foundation for downstream analyses.
+%Third, GSSBL can be deployed for the digital restoration of damaged inscriptions. For fragments where text is partially lost, the model can predict the most semantically plausible missing characters or phrases based on the remaining context and the model's learned knowledge of the corpus.
 
-There are two limitations of the proposed method. First, GSSBL cannot leverage both primary-character tags and secondary-character tags simultaneously, which limits the comprehensiveness of feature representation. Future work may integrate the two levels of tags during training to enhance the model’s ability to capture character-level information. Second, the contrastive learning algorithm has not yet been extended to glyphic information at the primary-character tag or to semantic information across the two levels of tags. To address this limitation, future research should broaden the application of contrastive learning, improving the model’s capacity to exploit information at different granularities.
+%Third, GSSBL can assist the task of the authentication of oracle bones. Researchers can leverage the association scores provided by GSSBL to infer the provenance, period, or writing system of the bones. This information provides support for authentication, provenance tracing, and studies of script evolution.
+%wtz修改：我只修改第三点吧，把它和第一个区分开
+%Third, GSSBL can assist in the provenance analysis of oracle bones. Researchers can use the association scores to construct an information network of oracle bone fragments. By leveraging the shared features of fragments that are strongly associated with unprovenanced bones, the provenance, period, and other related attributes of these unprovenanced bones can be inferred.
 
+
+The proposed OBID-ACR dataset is subject to two main limitations. First, its coverage of known OBI materials is not exhaustive. The main reason is the constrained scale and scope of existing digitized OBI textual resources. Second, many datasets that are already digitised can not be incorporated into the proposed dataset. The reason is many datasets do not utilise the same encoding standard, leading to a difficulty in cross-dataset integration. 
+
+The proposed GSSBL, also has two main drawbacks. Firstly, it is unable to concurrently leverage both semantic and glyphic embeddings from primary and secondary-character tags, which restricts the comprehensiveness of its feature representation. Secondly, the current model does not explicitly account for the hierarchical structure of words, potentially causing it to overlook the varying importance of different words in the construction of meaning.
+
+Based on the limitations identified above, we propose the following directions for future research. To address the dataset limitations, future efforts will prioritize the continued digitization of OBI collections and we advocate for the community-wide establishment of standardized encoding guidelines. This would facilitate the combined use of multiple datasets and ensure consistent annotations for downstream tasks. To overcome the methodological limitations, we plan to pursue two key research directions. The first is the development of a novel character embedding technique capable of simultaneous learning from two-tier tags to facilitate the downstream tasks. The second direction involves projecting word and glyphic features into a hyperbolic space \cite{peng2021hyperbolic}, which is naturally suited for embedding the hierarchical structures that our current model does not capture.
+
+
+%the absence of a unified encoding standard for oracle characters across different datasets presents a significant barrier to cross-dataset integration.
+
+%duanS4new2
+%6 Newly added sixth paragraph
+%2次
+%The flexibility of GSSBL enables the exploration of a wider range of semantic relationships under the guidance of positive and negative examples. By adjusting the pairing of these examples in the training data, the model can, in principle, learn new types of semantic associations, such as sequential order, contemporaneous texts, or shared themes. Hence, an interesting future direction of the proposed method is to employ alternative types of positive and negative pairings to learn new semantic relations, thereby providing novel analytical tools to facilitate oracle bone studies.
+
+%duanS4old3
+%7
+%4. 我们的数据集有什么问题 
+%There are two limitations of the proposed dataset. First, OBID-ACR only cover part of known OBI materials. The reason is existing digitised OBI textual datasets are limited in both scale and content.  Second, the previous digitised OBI datasets lack a unified encoding scheme for oracle characters, which restricts cross-dataset integration.
+
+%There are two furture directions of the improving the dataset. First. further promoting the digitisation of OBIs, thereby expanding the dataset’s coverage and representativeness. Second.   To overcome this limitation, standardised encoding guidelines should be established, enabling the combined use of multiple datasets and providing a consistent annotations for downstream analysis.
+
+%duanS4old4
+%2次
+%8 Revised fourth paragraph in the Discussion section, which has now become the new eighth paragraph
+%5. 我们的算法有什么问题。 
+%There are two limitations of the proposed method. First, GSSBL cannot simultaneously leverage semantic embeddings and glyphic embeddings of both primary-character and secondary-character tags, which limits the comprehensiveness of feature representation. Second,  the current approach is that it does not explicitly model the hierarchical structure of words. In many cases, words are not of equal importance or influence, and treating them uniformly may limit the model’s ability to capture the varying contributions of different words in forming meaning.
+%First, the proposed SGCLM module cannot be directly applied to these primary-character tag glyphic embeddings. The reason is current annotation information does not include category relationships for primary-character tags, making it difficult to construct positive and negative pairs for contrastive learning. 
+%duanS4new6
+%biaonew2
+%移动到3.7
+
+%duanS4new5
+%9
+%2次
+%6. 未来的工作
+%There are two future directions to address these limitations. The first direction is to develop a novel character embedding method that simultaneously learns character embeddings from two-tier tags \cite{yang2023two}. This allows the model to leverage more comprehensive information. The second direction is to embed the word and glyphic features into hyperbolic space \cite{dhingra2018embedding}. Hyperbolic space can effectively represent the latent hierarchical structures of these features, which can potentially facilitate downstream tasks.
 
 \backmatter
 
 \bmhead{Supplementary information}
-
-Not applicable.
+%wtz 老师这里是不是得改啊，我找到一个npj的论文是有补充材料的，他这部分是这么写的： (Supplementary information)加粗 The online version contains supplementary material available at https://doi.org/10.1038/s41746-025-01464-xNot applicable.
 
 \bmhead{Acknowledgements}
-This research was funded by the Henan Province International Science and Technology Cooperation-Cultivation Project (Grant No.252102520003), the Henan Province Science and Technology Research Project (Grant No.252102210031), the Henan Province Science and Technology Research Project (Grant No.252102321141), the Key Technology Project of Henan Educational Department of China (Grant No.22ZX010), the National Natural Science Foundation of China (Grant No.U1504612), the Henan Revitalisation Cultural Engineering Special Project (Grant No.2023XWH296), the Natural Science Foundation of Henan Province (Grant No.242300420680), the Major Science and Technology Project of Anyang (Grant No.2025A02SF007). 
+We sincerely thank Dr. Shengwei Han, Dr. Yanqun Qiao, and Professor Liping Qiu from Anyang Normal University for their invaluable contribution to the annotation work. This research is funded by the Henan Province International Science and Technology Cooperation-Cultivation Project (Grant No.252102520003), the Henan Province Science and Technology Research Project (Grant No.252102210031), the Henan Province Science and Technology Research Project (Grant No.252102321141), the Key Technology Project of Henan Educational Department of China (Grant No.22ZX010), the National Natural Science Foundation of China (Grant No.U1504612), the Henan Revitalisation Cultural Engineering Special Project (Grant No.2023XWH296), the Natural Science Foundation of Henan Province (Grant No.242300420680), the Major Science and Technology Project of Anyang (Grant No.2025A02SF007). 
 \section*{Declarations}
 Some journals require declarations to be submitted in a standardised format. Please check the Instructions for Authors of the journal to which you are submitting to see if you need to complete this section. If yes, your manuscript must contain the following sections under the heading ‘Declarations’:
 \begin{itemize}
-\item Author contribution. Conceptualization, Y. L., H. Z. and T. W.; methodology, H. Z. and T. W.; software, T. W.; validation, T. W. and Z. Z.; formal analysis, N. W., Q. J., Y. Y., H. Z. and T. W.; data curation, B. L. and T. W.; writing—original draft preparation, H. Z. and T. W.; writing—review and editing, H. Z., C. H. and T. W.; project administration, H. S. and T. W.; funding acquisition, J. X. and Y. L. All authors have read and agreed to the published version of the manuscript.
+\item Author contribution. Conceptualisation, Y. L., H. Z. and T. W.; methodology, H. Z. and T. W.; software, T. W.; validation, T. W. and Z. Z.; formal analysis, N. W., Q. J., Y. Y., H. Z. and T. W.; data curation, B. L. and T. W.; writing—original draft preparation, H. Z. and T. W.; writing—review and editing, H. Z.,  J. X. , C. H. and T. W.; project administration, H. S. and T. W.; funding acquisition, Y. L. All authors have read and agreed to the published version of the manuscript.
 \item Conflict of interest/Competing interests.  The authors declare no competing interests.
 \item Ethics approval and consent to participate. Not applicable
 \item Consent for publication. Not applicable
