@@ -142,7 +142,8 @@ python GSSBL.py   --train_path data/train.txt   --test_path data/test.txt   --wo
 ```
 ├── GSSBL.py   
 ├── vae.py   
-├── contrastive.py        
+├── contrastive.py
+├── w2v.py       
 ├── main.py                   
 ├── requirements.txt
 ├── data/
