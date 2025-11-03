@@ -76,6 +76,9 @@ Example format:
 }
 ```
 
+> The semantic embeddings are learned using the skip-gram model with negative sampling, which can be trained via `w2v.py`.
+
+> The data required for training the semantic embeddings can be accessed at [Zenodo](https://zenodo.org/records/14882488). The processed version of the data is also provided in the `data` folder of this GitHub repository.
 
 > The glyphic embeddings can be trained using `vae.py`. The data required for this step can be accessed at [Zenodo](https://zenodo.org/records/14882488).
 
