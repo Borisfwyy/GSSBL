@@ -1,15 +1,15 @@
 # Glyphic-Semantic Siamese BiLSTM (GSSBL)
 
 This repository implements a **Glyphic-Semantic Siamese BiLSTM (GSSBL)** that integrates **semantic** (meaning) and **glyphic** (shape) embeddings of oracle bone inscriptions (OBIs) to address the **Fragment Association Prediction Problem**.
-This model provides a new AI-based approach for **oracle bone rejoin**. It was proposed in the paper *"A Multi-Model Framework and Dataset for Bone-Level Association Prediction in Oracle Bone Inscriptions"*.
+This model provides a new AI-based approach for **oracle bone rejoin**. It was proposed in the paper *"A Multi-Modal Dataset and Method for Bone-Level Association Prediction in Oracle Bone Inscriptions"*.
 
 
 ---
 
 ## ✨ Features
 - Dual-tower BiLSTM encoders for two sentences.
-- Learnable fusion weight `α` to combine **meaning** and **shape** embeddings.
-- Switch between **primary-character** and **secondary-character** tokens via `use_subword`.
+- Learnable fusion weight `α` to combine **meaning/semantic** and **shape/glyphic** embeddings.
+- Switch between **primary-character** and **secondary-character** tags via `use_subword`.
 - Early stopping on training loss (patience).
 - Metrics: **AUROC** , **AUPR** , **Accuracy** , **Precision** , **Recall** and **F1 score**.
 - Multiple runs with averaged results saved to CSV.
@@ -118,19 +118,19 @@ python GSSBL.py   --train_path data/train.txt   --test_path data/test.txt   --wo
 
 ## 📊 Output
 
-- Console logs each run’s **AUROC** and **AUPR**.
+- Console logs each run’s **AUROC** , **AUPR** , **Accuracy** , **Precision** , **Recall** and **F1 score**.
 - CSV file with averaged metrics:
   ```
-  Mean_AUROC,Mean_AUPR
-  0.8734,0.8521
+  Run,AUROC,AUPR,ACC,Precision,Recall,F1
+  1,0.9572285274870893,0.7864667610863505,0.9520656314093173,0.7449933244325768,0.7190721649484536,0.7318032786885246
   ```
 
 ---
 
 ## 🧠 Notes on Training
 
-- Early stopping is based on **training loss** with a patience window (default 20).
-- Embedding dimension (`EMBED_DIM=512`), hidden size (`HIDDEN_SIZE=256`), dropout (`0.3`), batch size (`64`), and max epochs (`100`) are set inside the function.
+- Early stopping is based on **training loss** with a patience window (default 10).
+- Embedding dimension (`EMBED_DIM=512`), hidden size (`HIDDEN_SIZE=256`), dropout (`0.3`), batch size (`64`), learning rate (`5e-4`) and max epochs (`100`) are set inside the function.
 - Sequences are truncated to `MAX_SEQ_LEN=30` tokens.
 - Vocabulary is built from **both** train and test files to avoid OOV at test time.
 - Reproducibility: random seeds are **not** set by default.
