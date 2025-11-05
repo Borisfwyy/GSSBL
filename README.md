@@ -99,7 +99,7 @@ We provide a `main.py`. You can modify the parameters inside before running it.
 
 
 ```bash
-python GSSBL.py   --train_path data/train.txt   --test_path data/test.txt   --word_vec_path_meaning model/sgns.json   --word_vec_path_shape model/glyph.json   --output_csv_path results/output.csv   --repeat 5   --use_subword True   --cuda_device 0
+python code/GSSBL.py   --train_path data/train.txt   --test_path data/test.txt   --word_vec_path_meaning model/sgns.json   --word_vec_path_shape model/glyph.json   --output_csv_path results/output.csv   --repeat 5   --use_subword True   --cuda_device 0
 ```
 
 
@@ -140,12 +140,7 @@ python GSSBL.py   --train_path data/train.txt   --test_path data/test.txt   --wo
 
 ## 📁 Suggested Repository Structure
 
-```
-├── GSSBL.py   
-├── vae.py   
-├── contrastive.py
-├── w2v.py       
-├── main.py                   
+```                
 ├── requirements.txt
 ├── data/
 │   ├── processed_data.txt
@@ -154,6 +149,19 @@ python GSSBL.py   --train_path data/train.txt   --test_path data/test.txt   --wo
 ├── model/
 │   ├── sgns.json
 │   └── glyph.json
+├── code/
+│   ├── bilstm.py
+│   ├── BoW.py
+│   ├── constractive.py
+│   ├── GSSBL.py
+│   ├── jvtrans.py
+│   ├── main.py
+│   ├── SIF.py
+│   ├── te.py
+│   ├── TextCNN.py
+│   ├── uSIF.py
+│   ├── vae.py
+│   └── w2v.py
 └── results/
     └── output.csv
 ```
