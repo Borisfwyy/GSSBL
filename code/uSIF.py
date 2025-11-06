@@ -178,7 +178,7 @@ def run_usif(word_vec_path: str, data_paths: list, output_csv_path: str, repeat:
             print(f"\n=== MLP 第 {run_id + 1} 次实验 ===")
             mlp = MLP(input_dim=input_dim).to(device)
             criterion = nn.BCEWithLogitsLoss()
-            optimizer = torch.optim.Adam(mlp.parameters(), lr=1e-4)
+            optimizer = torch.optim.Adam(mlp.parameters(), lr=5e-4)
             train_dataset = TensorDataset(torch.tensor(X_train_scaled, dtype=torch.float32),
                                         torch.tensor(y_train, dtype=torch.float32))
             train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
