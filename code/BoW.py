@@ -27,11 +27,11 @@ def run_bow(
     use_subword: bool = False
 ):
 
-    MAX_FEATURES = 2050
+    MAX_FEATURES = 2000
     BATCH_SIZE = 64
     EPOCHS = 100
     PATIENCE = 10
-    LR = 1e-4
+    LR = 5e-4
     THRESHOLD = 0.5
     USE_MLP = True
 
