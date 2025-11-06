@@ -51,7 +51,7 @@ def run_sif(
     EPOCHS = 100
     PATIENCE = 10
     BATCH_SIZE = 64
-    LR = 1e-4
+    LR = 5e-4
     threshold = 0.5  
     print(f"使用子字: {use_subword}, cuda_device: {cuda_device}, SIF...")    
     train_path, test_path = data_paths
