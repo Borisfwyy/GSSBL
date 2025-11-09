@@ -9,7 +9,6 @@ This model provides a new AI-based approach for **oracle bone rejoin**. It was p
 ## ✨ Features
 - Dual-tower BiLSTM encoders for two sentences.
 - Learnable fusion weight `α` to combine **meaning/semantic** and **shape/glyphic** embeddings.
-- Switch between **primary-character** and **secondary-character** tags via `use_subword`.
 - Early stopping on training loss (patience).
 - Metrics: **AUROC** , **AUPR** , **Accuracy** , **Precision** , **Recall** and **F1 score**.
 - Multiple runs with averaged results saved to CSV.
@@ -82,7 +81,7 @@ Example format:
 
 > The glyphic embeddings can be trained using `vae.py`. The data required for this step can be accessed at [Zenodo](https://zenodo.org/records/14882488).
 
-> To optimise glyphic embeddings using the secondary-character glyphic contrastive learning module (SGCLM), please use `contrastive.py`.
+> To optimise glyphic embeddings using the glyphic contrastive learning module (GCLM), please use `contrastive.py`.
 
 > The file **`data/tag.txt`** stores the **primary–secondary tag relationships** used in the SGCLM.  Each line represents a single *primary-character tag* followed by its corresponding *secondary-character tags*.  All secondary-character tags listed in the same line belong to the same primary-character tag.
 
@@ -154,7 +153,6 @@ python code/GSSBL.py   --train_path data/train.txt   --test_path data/test.txt  
 │   ├── BoW.py
 │   ├── constractive.py
 │   ├── GSSBL.py
-│   ├── jvtrans.py
 │   ├── main.py
 │   ├── SIF.py
 │   ├── te.py
