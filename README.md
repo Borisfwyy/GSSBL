@@ -166,7 +166,11 @@ python code/GSSBL.py   --train_path data/train.txt   --test_path data/test.txt  
 
 ---
 
+## 🧠 Communication
 
+If you have any questions or need further clarification, feel free to contact us via email at taozhiwang158@foxmail.com. We will do our best to provide assistance!
+
+---
 
 ## 📖 Citation
 
