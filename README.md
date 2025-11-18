@@ -50,7 +50,7 @@ u7v6rlhp81|xzku05tqy7 h0gzv3styy|h0gzv3styy jvuf4ut3c5|bf98fqv8qx	d7mczw6osp|d7m
 
 ## 🔤 Pretrained Embeddings
 
-Provide two JSON files of the same vocabulary (keys are tokens, values are 512-d vectors by default).
+Provide two JSON files of the same vocabulary (keys are tokens, values are 512-d vectors by default). 
 
 Example format:
 
@@ -102,7 +102,9 @@ We provide a `main.py`. You can modify the parameters inside before running it.
 
 ## ⚙️ Communication
 
-If you have any questions or need further clarification, feel free to contact us via email at taozhiwang158@foxmail.com. We will do our best to provide assistance!
+ - If you have any questions or need further clarification, feel free to contact us via email at taozhiwang158@foxmail.com. We will do our best to provide assistance!
+ - Due to the large size of the embedding JSON files, they cannot be uploaded to GitHub. If you are interested in academic research, please feel free to contact me via email.
+ - Similarly, the pre-trained model `.pt` files are also available upon request.
 
 ---
 
