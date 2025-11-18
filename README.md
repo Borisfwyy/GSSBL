@@ -71,7 +71,7 @@ Example format:
 
 ## 🚀 Usage
 
-### Option A: main.py
+### Option A: code/main.py
 
 We provide a `main.py`. You can modify the parameters inside before running it.
 
