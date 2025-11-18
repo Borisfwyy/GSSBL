@@ -1,15 +1,14 @@
-# Glyphic-Semantic Siamese BiLSTM (GSSBL)
+# Siamese BiLSTM with Glyphic Character Embeddings for Bone-level Sentence Association Prediction (SGBSAP)
 
-This repository implements a **Glyphic-Semantic Siamese BiLSTM (GSSBL)** that integrates **semantic** (meaning) and **glyphic** (shape) embeddings of oracle bone inscriptions (OBIs) to address the **Fragment Association Prediction Problem**.
-This model provides a new AI-based approach for **oracle bone rejoin**. It was proposed in the paper *"A Multi-Modal Dataset and Method for Bone-Level Association Prediction in Oracle Bone Inscriptions"*.
+This repository implements a **Siamese BiLSTM with Glyphic Character Embeddings for Bone-level Sentence Association Prediction (SGBSAP)** that employing **glyphic** (shape) character embeddings of oracle bone inscriptions (OBIs) to address the **Fragment Association Prediction Problem**.
+This model provides a new AI-based approach for **oracle bone rejoininh**. It was proposed in the paper *"A Multi-Modal Dataset and a Glyph-Based Method for Bone-Level Association Prediction in Oracle Bone Inscriptions"*.
 
 
 ---
 
 ## ✨ Features
 - Dual-tower BiLSTM encoders for two sentences.
-- Learnable fusion weight `α` to combine **meaning/semantic** and **shape/glyphic** embeddings.
-- Early stopping on training loss (patience).
+- Employing glyphic (shape) character embeddings rather than semantic (meaning) character embeddings. 
 - Metrics: **AUROC** , **AUPR** , **Accuracy** , **Precision** , **Recall** and **F1 score**.
 - Multiple runs with averaged results saved to CSV.
 
@@ -21,15 +20,6 @@ Create an environment and install dependencies:
 
 ```bash
 pip install -r requirements.txt
-```
-
-Minimal `requirements.txt`:
-```txt
-numpy
-torch
-scikit-learn
-tqdm
-Pillow
 ```
 
 Python 3.9+ and PyTorch ≥ 2.0 are recommended.
@@ -60,10 +50,7 @@ u7v6rlhp81|xzku05tqy7 h0gzv3styy|h0gzv3styy jvuf4ut3c5|bf98fqv8qx	d7mczw6osp|d7m
 
 ## 🔤 Pretrained Embeddings
 
-Provide two JSON files of the same vocabulary (keys are tokens, values are 512-d vectors by default):
-
-- `model/sgns.json` — semantic embeddings
-- `model/glyph.json` — glyphic embeddings
+Provide two JSON files of the same vocabulary (keys are tokens, values are 512-d vectors by default).
 
 Example format:
 
@@ -75,15 +62,9 @@ Example format:
 }
 ```
 
-> The semantic embeddings are learned using the skip-gram model with negative sampling, which can be trained via `w2v.py`.
-
 > The data required for training the semantic embeddings can be accessed at [Zenodo](https://zenodo.org/records/14882488). The processed version of the data is also provided in the `data` folder of this GitHub repository.
 
-> The glyphic embeddings can be trained using `vae.py`. The data required for this step can be accessed at [Zenodo](https://zenodo.org/records/14882488).
-
-> To optimise glyphic embeddings using the glyphic contrastive learning module (GCLM), please use `contrastive.py`.
-
-> The file **`data/tag.txt`** stores the **primary–secondary tag relationships** used in the SGCLM.  Each line represents a single *primary-character tag* followed by its corresponding *secondary-character tags*.  All secondary-character tags listed in the same line belong to the same primary-character tag.
+> The glyphic embeddings can be trained using VAE. The data required for this step can be accessed at [Zenodo](https://zenodo.org/records/14882488).
 
 
 ---
@@ -94,25 +75,7 @@ Example format:
 
 We provide a `main.py`. You can modify the parameters inside before running it.
 
-### Option B: CLI wrapper (optional)
-
-
-```bash
-python code/GSSBL.py   --train_path data/train.txt   --test_path data/test.txt   --word_vec_path_meaning model/sgns.json   --word_vec_path_shape model/glyph.json   --output_csv_path results/output.csv   --repeat 5   --use_subword True   --cuda_device 0
-```
-
-
-> If `subchara = False`, keys should correspond to **primary-character** tokens (the right side of `primary-character|secondary-character`). Otherwise, keys correspond to **secondary-character** (the left side).
-
-## ⚙️ Arguments
-
-- `train_path` / `test_path`: Paths to TSV files with sentence pairs and labels.
-- `word_vec_path_meaning`: Path to semantic embedding JSON.
-- `word_vec_path_shape`: Path to glyphic embedding JSON.
-- `output_csv_path`: Where to save averaged metrics.
-- `repeat`: Number of repeated runs (default in examples: 5).
-- `use_subword`: Use secondary-character tokens (`True`) or primary-characters (`False`).
-- `cuda_device`: GPU index; CPU used if CUDA is unavailable.
+### Option B: bash run.sh
 
 ---
 
@@ -137,36 +100,7 @@ python code/GSSBL.py   --train_path data/train.txt   --test_path data/test.txt  
 
 ---
 
-## 📁 Suggested Repository Structure
-
-```                
-├── requirements.txt
-├── data/
-│   ├── processed_data.txt
-│   ├── train.txt
-│   └── test.txt
-├── model/
-│   ├── sgns.json
-│   └── glyph.json
-├── code/
-│   ├── bilstm.py
-│   ├── BoW.py
-│   ├── constractive.py
-│   ├── GSSBL.py
-│   ├── main.py
-│   ├── SIF.py
-│   ├── te.py
-│   ├── TextCNN.py
-│   ├── uSIF.py
-│   ├── vae.py
-│   └── w2v.py
-└── results/
-    └── output.csv
-```
-
----
-
-## 🧠 Communication
+## ⚙️ Communication
 
 If you have any questions or need further clarification, feel free to contact us via email at taozhiwang158@foxmail.com. We will do our best to provide assistance!
 
