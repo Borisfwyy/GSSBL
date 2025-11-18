@@ -1,5 +1,9 @@
 numpy
 torch
 scikit-learn
+scikit-learn-intelex
+xgboost
+lightgbm
+pandas
 tqdm
-Pillow
+scipy
