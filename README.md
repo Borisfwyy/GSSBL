@@ -93,7 +93,7 @@ We provide a `main.py`. You can modify the parameters inside before running it.
 ## 🧠 Notes on Training
 
 - Early stopping is based on **training loss** with a patience window (default 10).
-- Embedding dimension (`EMBED_DIM=512`), hidden size (`HIDDEN_SIZE=256`), dropout (`0.3`), batch size (`64`), learning rate (`5e-4`) and max epochs (`100`) are set inside the function.
+- Embedding dimension (`EMBED_DIM=512`), hidden size (`HIDDEN_SIZE=256`), dropout (`0.3`), batch size (`64`), learning rate (`1e-4`) and max epochs (`100`) are set inside the function.
 - Sequences are truncated to `MAX_SEQ_LEN=30` tokens.
 - Vocabulary is built from **both** train and test files to avoid OOV at test time.
 - Reproducibility: random seeds are **not** set by default.
