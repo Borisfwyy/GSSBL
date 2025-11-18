@@ -1,7 +1,7 @@
 # Siamese BiLSTM with Glyphic Character Embeddings for Bone-level Sentence Association Prediction (SGBSAP)
 
 This repository implements a **Siamese BiLSTM with Glyphic Character Embeddings for Bone-level Sentence Association Prediction (SGBSAP)** that employing **glyphic** (shape) character embeddings of oracle bone inscriptions (OBIs) to address the **Fragment Association Prediction Problem**.
-This model provides a new AI-based approach for **oracle bone rejoininh**. It was proposed in the paper *"A Multi-Modal Dataset and a Glyph-Based Method for Bone-Level Association Prediction in Oracle Bone Inscriptions"*.
+This model provides a new AI-based approach for **oracle bone rejoining**. It was proposed in the paper *"A Multi-Modal Dataset and a Glyph-Based Method for Bone-Level Association Prediction in Oracle Bone Inscriptions"*.
 
 
 ---
