@@ -103,7 +103,7 @@ We provide a `main.py`. You can modify the parameters inside before running it.
 ## ⚙️ Communication
 
  - If you have any questions or need further clarification, feel free to contact us via email at taozhiwang158@foxmail.com. We will do our best to provide assistance!
- - Due to the large size of the embedding JSON files, they cannot be uploaded to GitHub. If you are interested in academic research, please feel free to contact us via email.
+ - Due to the large size of the embedding JSON files, they cannot be uploaded to GitHub. For academic research purposes, the files are available at the following link: https://zenodo.org/records/14882488 
  - Similarly, the pre-trained model `.pt` files are also available upon request.
 
 ---
