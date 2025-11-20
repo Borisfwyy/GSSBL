@@ -18,7 +18,6 @@ from sklearn.svm import LinearSVC
 
 patch_sklearn()
 
-# ===== MLP 定义 =====
 class MLP(nn.Module):
     def __init__(self, input_dim=1024):
         super().__init__()
@@ -42,16 +41,14 @@ def run_usif(word_vec_path: str, data_paths: list, output_csv_path: str, repeat:
     LR = lr
 
     train_path, test_path = data_paths
-    print(f"使用子字: {use_subword}, cuda_device: {cuda_device}, uSIF..., lr={LR}, save：{output_csv_path}, json: {word_vec_path}, repeat={repeat}")    
-    #set_cuda_device(cuda_device)
+    print(f"Using subword: {use_subword}, cuda_device: {cuda_device}, uSIF..., lr={LR}, save：{output_csv_path}, json: {word_vec_path}, repeat={repeat}")
 
-
-    # ===== 1. 读取词向量 =====
+    # ===== 1. Load word vectors =====
     with open(word_vec_path, "r", encoding="utf-8") as f:
         word_vec = json.load(f)
         word_vec = {k: np.array(v) for k, v in word_vec.items()}
 
-    # ===== 2. 统计正例词频 =====
+    # ===== 2. Calculate word frequency from positive samples =====
     def load_positive_sentences(file_path):
         sentences = []
         with open(file_path, "r", encoding="utf-8") as f:
@@ -85,7 +82,7 @@ def run_usif(word_vec_path: str, data_paths: list, output_csv_path: str, repeat:
 
     word_prob = compute_word_freq(positive_sentences, use_subword=use_subword)
 
-    # ===== 3. uSIF embedding（经典方式） =====
+    # ===== 3. uSIF embedding (classic method) =====
     def compute_usif_embedding(sentence, word_vec, word_prob, use_subword=use_subword, a=SMOOTHING_A):
         words = sentence.strip().split()
         vecs = []
@@ -105,55 +102,51 @@ def run_usif(word_vec_path: str, data_paths: list, output_csv_path: str, repeat:
             return np.zeros(EMBED_DIM)
         return np.mean(np.vstack(vecs), axis=0)
 
-    # ===== 4. 特征准备 =====
+    # ===== 4. Prepare features and labels =====
     def prepare_features_labels_pairwise(file_path, word_vec, word_prob, use_subword=use_subword):
         X, y = [], []
-        for line in tqdm(open(file_path, "r", encoding="utf-8"), desc=f"生成特征: {file_path}"):
+        for line in tqdm(open(file_path, "r", encoding="utf-8"), desc=f"Generating features: {file_path}"):
             a, b, label = line.strip().split("\t")
-            # 将两个句子合并为一个句子对（空格连接）
             combined_sentence = a + " " + b
             vec = compute_usif_embedding(combined_sentence, word_vec, word_prob, use_subword=use_subword)
             X.append(vec)
             y.append(int(label))
         return np.array(X), np.array(y)
 
-
     X_train, y_train = prepare_features_labels_pairwise(train_path, word_vec, word_prob, use_subword=use_subword)
     X_test, y_test = prepare_features_labels_pairwise(test_path, word_vec, word_prob, use_subword=use_subword)
-    input_dim = X_train.shape[1]  # 自动对应 word_vec 的维度
+    input_dim = X_train.shape[1]
 
-
-    # ===== 5. 模型字典 =====
+    # ===== 5. Model dictionary =====
     model_dict = {
-        #"LR": "lr",
+        "LR": "lr",
         "SVM": "svm",
-        #"XGBoost": "xgb",
-        #"LightGBM": "lgbm",
-        #"MLP": "mlp"
+        "XGBoost": "xgb",
+        "LightGBM": "lgbm",
+        "MLP": "mlp"
     }
 
     all_results = {name: {'auroc': [], 'aupr': [], 'acc': [], 'precision': [], 'recall': [], 'f1': []} for name in model_dict.keys()}
 
-    # ===== 6. 标准化 =====
+    # ===== 6. Standardization =====
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
-    # ===== 7. 非 MLP 模型 =====
+    # ===== 7. Non-MLP models =====
     for name, mtype in model_dict.items():
         if mtype == "mlp":
-            continue  # MLP 后面单独处理
+            continue
 
-        print(f"\n=== 模型 {name} ===")
-        run_id = 0  # 只跑一次
-        print(f"\n--- 第 {run_id + 1} 次实验 ---")
+        print(f"\n=== Model {name} ===")
+        run_id = 0
+        print(f"\n--- Experiment {run_id + 1} ---")
         
-        print(f"\n训练模型: {name}")
+        print(f"\nTraining model: {name}")
 
-        # ===== 初始化模型 =====
         if mtype == "lr":
             max_iter_set = 100
-            print(f"LR的max_iter = {max_iter_set}")
+            print(f"LR max_iter = {max_iter_set}")
             model = LogisticRegression(max_iter=max_iter_set, class_weight='balanced')
         elif mtype == "svm":
             model = LinearSVC(max_iter=1000, class_weight='balanced', C=1, loss="hinge")
@@ -162,12 +155,10 @@ def run_usif(word_vec_path: str, data_paths: list, output_csv_path: str, repeat:
         elif mtype == "lgbm":
             model = LGBMClassifier()
         else:
-            continue  # 未知模型跳过
+            continue
 
-        # ===== 训练 =====
         model.fit(X_train_scaled, y_train)
 
-        # ===== 预测概率/决策值 =====
         if mtype in ["lr", "svm"]:
             y_prob = model.decision_function(X_test_scaled)
         else:
@@ -175,7 +166,6 @@ def run_usif(word_vec_path: str, data_paths: list, output_csv_path: str, repeat:
 
         y_pred = (y_prob >= threshold).astype(int)
 
-        # ===== 指标计算 =====
         auroc = roc_auc_score(y_test, y_prob)
         aupr = average_precision_score(y_test, y_prob)
         acc = accuracy_score(y_test, y_pred)
@@ -190,16 +180,15 @@ def run_usif(word_vec_path: str, data_paths: list, output_csv_path: str, repeat:
         all_results[name]['recall'].append(recall)
         all_results[name]['f1'].append(f1)
 
-        print(f">>> {name} 指标:")
+        print(f">>> {name} Metrics:")
         print(f"AUROC={auroc:.8f}, AUPR={aupr:.8f}, Accuracy={acc:.8f}, "
             f"Precision={precision:.8f}, Recall={recall:.8f}, F1={f1:.8f}")
 
-
-    # ===== 8. MLP 多次实验 =====
+    # ===== 8. MLP multiple experiments =====
     device = torch.device(f"cuda:{cuda_device}" if torch.cuda.is_available() else "cpu")
     if "MLP" in model_dict:
         for run_id in range(repeat):
-            print(f"\n=== MLP 第 {run_id + 1} 次实验 ===")
+            print(f"\n=== MLP Experiment {run_id + 1} ===")
             mlp = MLP(input_dim=input_dim).to(device)
             criterion = nn.BCEWithLogitsLoss()
             optimizer = torch.optim.Adam(mlp.parameters(), lr=LR)
@@ -240,13 +229,13 @@ def run_usif(word_vec_path: str, data_paths: list, output_csv_path: str, repeat:
             all_results["MLP"]['auroc'].append(roc_auc_score(y_test, y_prob))
             all_results["MLP"]['aupr'].append(average_precision_score(y_test, y_prob))
             all_results["MLP"]['acc'].append(accuracy_score(y_test, y_pred))
-            all_results["MLP"]['precision'].append(precision_score(y_test, y_pred))
-            all_results["MLP"]['recall'].append(recall_score(y_test, y_pred))
-            all_results["MLP"]['f1'].append(f1_score(y_test, y_pred))
+            all_results["MLP"]['precision'].append(precision_score(y_test, y_pred, zero_division=0))
+            all_results["MLP"]['recall'].append(recall_score(y_test, y_pred, zero_division=0))
+            all_results["MLP"]['f1'].append(f1_score(y_test, y_pred, zero_division=0))
     else:
-        print("MLP 未包含在模型列表中，跳过 MLP 训练。")
+        print("MLP not included in model list, skipping MLP training.")
 
-    # ===== 9. 保存 CSV =====
+    # ===== 9. Save CSV =====
     os.makedirs(os.path.dirname(output_csv_path), exist_ok=True)
     with open(output_csv_path, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
@@ -275,7 +264,6 @@ def run_usif(word_vec_path: str, data_paths: list, output_csv_path: str, repeat:
                     f"{results['recall'][0]:.8f}",
                     f"{results['f1'][0]:.8f}"
                 ])
-            # 均值
             writer.writerow([
                 name, "mean",
                 f"{np.mean(results['auroc']):.8f}",
@@ -285,4 +273,4 @@ def run_usif(word_vec_path: str, data_paths: list, output_csv_path: str, repeat:
                 f"{np.mean(results['recall']):.8f}",
                 f"{np.mean(results['f1']):.8f}"
             ])
-    print(f"\n✅ 结果均值已保存到 {output_csv_path}")
+    print(f"\n✅ Average results saved to {output_csv_path}")

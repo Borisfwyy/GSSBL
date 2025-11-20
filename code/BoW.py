@@ -6,7 +6,7 @@ def run_bow(
     cuda_device: int | None = None,
     use_subword: bool = False,
     lr=1e-4,
-    model_dict=None  # 新增参数：模型词典控制是否跑
+    model_dict=None
 ):
     import numpy as np
     import torch
@@ -26,7 +26,6 @@ def run_bow(
     import os
     import pandas as pd
 
-    # ==== 配置 ====
     MAX_FEATURES = 2000
     BATCH_SIZE = 64
     EPOCHS = 100
@@ -36,18 +35,17 @@ def run_bow(
 
     if model_dict is None:
         model_dict = {
-            #"MLP": True,
-            #"LR": True,
+            "MLP": True,
+            "LR": True,
             "SVM": True,
-            #"XGBoost": True,
-            #"LightGBM": True
+            "XGBoost": True,
+            "LightGBM": True
         }
 
-    print(f"使用子字: {use_subword}, cuda_device: {cuda_device}, BOW..., lr={LR}")
+    print(f"Using subword: {use_subword}, cuda_device: {cuda_device}, BOW..., lr={LR}")
 
     DEVICE = torch.device(f"cuda:{cuda_device}" if cuda_device is not None and torch.cuda.is_available() else "cpu")
 
-    # ==== MLP模型 ====
     class MLP(nn.Module):
         def __init__(self, input_dim):
             super().__init__()
@@ -61,7 +59,6 @@ def run_bow(
         def forward(self, x):
             return self.net(x).squeeze(1)
 
-    # ==== 数据加载 ====
     def extract_main(text):
         if use_subword:
             return " ".join([w.split("|")[1] if "|" in w else w for w in text.split()])
@@ -81,17 +78,17 @@ def run_bow(
                 labels.append(int(label))
         return texts, labels
 
-    print("加载训练集...")
+    print("Loading training set...")
     train_texts, train_labels = load_data(train_path)
-    print("加载测试集...")
+    print("Loading test set...")
     test_texts, test_labels = load_data(test_path)
 
-    print("向量化...")
+    print("Vectorizing...")
     vectorizer = TfidfVectorizer(max_features=MAX_FEATURES)
     X_train = vectorizer.fit_transform(train_texts).toarray()
     X_test = vectorizer.transform(test_texts).toarray()
     input_dim = X_train.shape[1]
-    print(f"训练样本数: {len(X_train)}, 输入维度: {input_dim}")
+    print(f"Number of training samples: {len(X_train)}, Input dimension: {input_dim}")
 
     def get_batches(X, y, batch_size):
         n = len(X)
@@ -135,10 +132,9 @@ def run_bow(
 
     all_results = []
 
-    # === MLP训练 ===
     if model_dict.get("MLP", False):
         for run_id in range(1, repeat + 1):
-            print(f"\n=== 第 {run_id} 次 MLP 训练 ===")
+            print(f"\n=== MLP Training Run {run_id} ===")
             model = MLP(input_dim).to(DEVICE)
             criterion = nn.BCEWithLogitsLoss()
             optimizer = optim.Adam(model.parameters(), lr=LR)
@@ -174,8 +170,7 @@ def run_bow(
                 'recall': recall, 'f1': f1
             })
 
-    # === 其他模型只跑一次 ===
-    print("\n=== 基础算法训练 ===")
+    print("\n=== Base Model Training ===")
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
@@ -184,7 +179,7 @@ def run_bow(
         if name == "MLP" or not run_flag:
             continue
 
-        print(f"训练模型: {name}")
+        print(f"Training model: {name}")
         if name == "LR":
             m = LogisticRegression(max_iter=100, class_weight='balanced')
             m.fit(X_train_scaled, train_labels)
@@ -203,7 +198,7 @@ def run_bow(
             m.fit(X_train, train_labels)
             y_prob = m.predict_proba(X_test)[:, 1]
         else:
-            raise ValueError(f"未知模型: {name}")
+            raise ValueError(f"Unknown model: {name}")
 
         y = np.array(test_labels)
         auroc = roc_auc_score(y, y_prob)
@@ -226,7 +221,6 @@ def run_bow(
             'f1': f1
         })
 
-    # === 保存结果 ===
     df = pd.DataFrame(all_results)
     summary = df.groupby('model').mean(numeric_only=True).reset_index()
     summary['run'] = 'mean'
@@ -234,4 +228,4 @@ def run_bow(
 
     os.makedirs(os.path.dirname(output_csv_path), exist_ok=True)
     final_df.to_csv(output_csv_path, index=False, encoding="utf-8")
-    print(f"\n✅ 结果已保存到 {output_csv_path}")
+    print(f"\n✅ Results saved to {output_csv_path}")

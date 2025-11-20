@@ -1,4 +1,3 @@
-# 单塔 都改好了
 import json
 import numpy as np
 import torch
@@ -12,7 +11,6 @@ import os
 def run_trans(train_path, test_path, word_vec_path, output_csv, repeat=5, cuda_device=None, use_subword=False, lr = 1e-4,     
     savemodel = True,
     savecanshu  = True):
-    # 设备选择
     if torch.cuda.is_available() and cuda_device is not None:
         device = torch.device(f"cuda:{cuda_device}")
     elif torch.cuda.is_available():
@@ -31,20 +29,18 @@ def run_trans(train_path, test_path, word_vec_path, output_csv, repeat=5, cuda_d
     NUM_HEADS = 8
     NUM_LAYERS = 6
     show_progress=False
-    print(f"进度条显示？ {show_progress}")
+    print(f"Show progress bar? {show_progress}")
 
-    print(f"transfomer encoder， 使用设备: {device}, use_subword: {use_subword}， word_vec_path: {word_vec_path}, lr={LR}, repeat = {repeat}")
+    print(f"Transformer encoder, Using device: {device}, use_subword: {use_subword}, word_vec_path: {word_vec_path}, lr={LR}, repeat = {repeat}")
 
-    # 加载词向量
     with open(word_vec_path, encoding="utf-8") as f:
         raw_vec = json.load(f)
     raw_vec = {k: np.array(v, dtype=np.float32) for k, v in raw_vec.items()}
 
     example_vec = next(iter(raw_vec.values()))
     EMBED_DIM = example_vec.shape[0]
-    print(f"自动检测到嵌入维度 EMBED_DIM = {EMBED_DIM}")
+    print(f"Automatically detected embedding dimension EMBED_DIM = {EMBED_DIM}")
 
-    # 构建词表
     def build_vocab(paths):
         vocab = set([CLS_TOKEN, SEP_TOKEN, PAD_TOKEN])
         for p in paths:
@@ -65,7 +61,6 @@ def run_trans(train_path, test_path, word_vec_path, output_csv, repeat=5, cuda_d
     vocab_list = build_vocab([train_path, test_path])
     word2idx = {w: i for i, w in enumerate(vocab_list)}
 
-    # 构造embedding矩阵
     embedding_matrix = np.zeros((len(word2idx), EMBED_DIM), dtype=np.float32)
     for w, idx in word2idx.items():
         if w in raw_vec:
@@ -119,7 +114,6 @@ def run_trans(train_path, test_path, word_vec_path, output_csv, repeat=5, cuda_d
             input_ids, token_type_ids, attention_mask = self.encode(s1, s2)
             return input_ids, token_type_ids, attention_mask, torch.tensor(label, dtype=torch.float32)
 
-    # 模型结构，BERT简化版
     class BERTClassifier(nn.Module):
         def __init__(self):
             super().__init__()
@@ -163,7 +157,7 @@ def run_trans(train_path, test_path, word_vec_path, output_csv, repeat=5, cuda_d
         model.train()
         total_loss = 0
         for input_ids, token_type_ids, attention_mask, labels in tqdm(
-                loader, desc="训练", disable=not show_progress):
+                loader, desc="Training", disable=not show_progress):
             input_ids, token_type_ids, attention_mask, labels = \
                 input_ids.to(device), token_type_ids.to(device), attention_mask.to(device), labels.to(device)
             optimizer.zero_grad()
@@ -180,7 +174,7 @@ def run_trans(train_path, test_path, word_vec_path, output_csv, repeat=5, cuda_d
         labels_all = []
         with torch.no_grad():
             for input_ids, token_type_ids, attention_mask, labels in tqdm(
-                    loader, desc="测试", disable=not show_progress):
+                    loader, desc="Testing", disable=not show_progress):
                 input_ids, token_type_ids, attention_mask = \
                     input_ids.to(device), token_type_ids.to(device), attention_mask.to(device)
                 logits = model(input_ids, token_type_ids, attention_mask)
@@ -198,12 +192,10 @@ def run_trans(train_path, test_path, word_vec_path, output_csv, repeat=5, cuda_d
             "f1": f1_score(labels_all, y_pred, zero_division=0)
         }
 
-
-    # 多次训练
     results_all = []
 
     for run_id in range(1, repeat + 1):
-        print(f"\n=== 第 {run_id} 次训练 ===")
+        print(f"\n=== Training Run {run_id} ===")
         train_data = DatasetWrap(train_path)
         test_data = DatasetWrap(test_path)
         train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
@@ -238,7 +230,7 @@ def run_trans(train_path, test_path, word_vec_path, output_csv, repeat=5, cuda_d
             os.makedirs(model_dir, exist_ok=True)
             model_path = os.path.join(model_dir, f"trans_run_{run_id}.pt")
             torch.save(model.state_dict(), model_path)
-            print(f"✅ 第 {run_id} 次训练模型已保存至 {model_path}")
+            print(f"✅ Model from Training Run {run_id} saved to {model_path}")
 
         if savecanshu:
             thresholds = np.arange(0.1, 1.0, 0.1)
@@ -269,20 +261,16 @@ def run_trans(train_path, test_path, word_vec_path, output_csv, repeat=5, cuda_d
                 writer = csv.writer(f)
                 writer.writerow(["Threshold", "Accuracy", "Precision", "Recall", "F1"])
                 writer.writerows(rows)
-            print(f"✅ 第 {run_id} 次训练阈值指标已保存至 {thresh_csv_path}")
+            print(f"✅ Threshold metrics from Training Run {run_id} saved to {thresh_csv_path}")
 
-
-
-    # 写入 CSV
     os.makedirs(os.path.dirname(output_csv), exist_ok=True)
     with open(output_csv, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["Run", "AUROC", "AUPR", "Accuracy", "Precision", "Recall", "F1"])
         for i, m in enumerate(results_all, 1):
             writer.writerow([i, m["auroc"], m["aupr"], m["acc"], m["precision"], m["recall"], m["f1"]])
-        # 平均值
         avg_metrics = {k: np.mean([r[k] for r in results_all]) for k in results_all[0]}
         writer.writerow(["mean", avg_metrics["auroc"], avg_metrics["aupr"], avg_metrics["acc"],
                          avg_metrics["precision"], avg_metrics["recall"], avg_metrics["f1"]])
-    print(f"\nMEAN结果: " + ", ".join([f"{k}: {v:.4f}" for k,v in avg_metrics.items()]))
-    print(f"\n✅ 所有结果及平均值已保存至 {output_csv}")
+    print(f"\nMEAN Results: " + ", ".join([f"{k}: {v:.4f}" for k,v in avg_metrics.items()]))
+    print(f"\n✅ All results and averages saved to {output_csv}")

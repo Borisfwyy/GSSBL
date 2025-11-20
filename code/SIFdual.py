@@ -25,7 +25,6 @@ from scipy.special import expit  # sigmoid
 
 patch_sklearn()
 
-# ===== MLP 定义 =====
 class MLPClassifier(nn.Module):
     def __init__(self, input_dim):
         super().__init__()
@@ -42,11 +41,11 @@ class MLPClassifier(nn.Module):
 
 def run_sifdual(
     word_vec_path: str,
-    data_paths: list,   # [train_path, test_path]
+    data_paths: list,
     output_csv_path: str,
     repeat: int = 5,
     cuda_device: int = 0,
-    use_subword: bool = False,   # 新增参数
+    use_subword: bool = False,
     lr = 1e-4
 ):
     SMOOTHING_A = 1e-3
@@ -55,18 +54,16 @@ def run_sifdual(
     PATIENCE = 100
     BATCH_SIZE = 64
     LR = lr
-    threshold = 0.5  # 评价指标计算阈值
+    threshold = 0.5
     setmax = 100
-    print(f"使用子字: {use_subword}, cuda_device: {cuda_device}, SIF..., lr={LR}, save：{output_csv_path}, json: {word_vec_path}, repeat={repeat}, 最大循环={setmax}") 
+    print(f"Using subword: {use_subword}, cuda_device: {cuda_device}, SIF..., lr={LR}, save：{output_csv_path}, json: {word_vec_path}, repeat={repeat}, max iterations={setmax}")
     train_path, test_path = data_paths
     
-    # 1. 加载词向量
     with open(word_vec_path, "r", encoding="utf-8") as f:
         word_vec = json.load(f)
         word_vec = {k: np.array(v) for k, v in word_vec.items()}
     print(f"Loaded word vectors from {word_vec_path}, total {len(word_vec)} words.")
 
-    # 2. 正例统计
     def load_positive_sentences(file_path):
         sentences = []
         with open(file_path, "r", encoding="utf-8") as f:
@@ -86,7 +83,6 @@ def run_sifdual(
         for s in sentences:
             for w in s.strip().split():
                 if use_subword:
-                    # 优先用子字
                     parts = w.split("|")
                     token = parts[1] if len(parts) > 1 else parts[0]
                 else:
@@ -100,7 +96,6 @@ def run_sifdual(
 
     word_prob = compute_word_freq(positive_sentences, use_subword=use_subword)
 
-    # 3. SIF embedding
     def compute_sif_embedding(sentence, word_vec, word_prob, a=SMOOTHING_A):
         words = sentence.strip().split()
         vecs = []
@@ -114,8 +109,6 @@ def run_sifdual(
             raise ValueError(f"SIF embedding is all zeros! Sentence: '{sentence}' with use_subword={use_subword}")
         return np.mean(np.vstack(vecs), axis=0)
 
-
-    # 4. 去第一个主成分
     def remove_pc(X, npc=1):
         svd = TruncatedSVD(n_components=npc, n_iter=7, random_state=42)
         svd.fit(X)
@@ -126,11 +119,10 @@ def run_sifdual(
         else:
             return X - X.dot(pc.T).dot(pc)
 
-    # 5. 生成特征和标签
     def prepare_features_labels(file_path):
         X, y = [], []
         with open(file_path, "r", encoding="utf-8") as f:
-            for line in tqdm(f, desc=f"生成特征: {file_path}"):
+            for line in tqdm(f, desc=f"Generating features: {file_path}"):
                 a, b, label = line.strip().split("\t")
                 va = compute_sif_embedding(a, word_vec, word_prob)
                 vb = compute_sif_embedding(b, word_vec, word_prob)
@@ -141,34 +133,30 @@ def run_sifdual(
         X = remove_pc(X, npc=1)
         return X, np.array(y)
 
-    # ======= 后面代码保持不变 =======
     X_train, y_train = prepare_features_labels(train_path)
     X_test, y_test = prepare_features_labels(test_path)
 
     input_dim = X_train.shape[1]
 
-    # 6. 模型字典
     model_dict = {
-        #"LR": "lr",
+        "LR": "lr",
         "SVM": "svm",
-        #"XGBoost": "xgb",
-        #"LightGBM": "lgbm",
-        #"MLP": "mlp"
+        "XGBoost": "xgb",
+        "LightGBM": "lgbm",
+        "MLP": "mlp"
     }
 
     all_results = {name: {'auroc': [], 'aupr': [], 'acc': [], 'precision': [], 'recall': [], 'f1': []} for name in model_dict.keys()}
 
-    # 标准化
-    print("标准化特征...")
+    print("Standardizing features...")
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
-    print("标准化特征...done")
+    print("Standardizing features...done")
 
-    # 前四个模型只跑一次
     for name, mtype in model_dict.items():
         if mtype != "mlp":
-            print(f"\n训练模型: {name}")
+            print(f"\nTraining model: {name}")
             if mtype == "lr":
                 m = LogisticRegression(max_iter=100, class_weight='balanced')
                 m.fit(X_train_scaled, y_train)
@@ -189,7 +177,6 @@ def run_sifdual(
                 continue
 
             y_pred = (y_prob >= threshold).astype(int)
-            # 打印指标
             print(f"AUROC: {roc_auc_score(y_test, y_prob):.4f}, AUPR: {average_precision_score(y_test, y_prob):.4f}, "
                   f"Acc: {accuracy_score(y_test, y_pred):.4f}, Precision: {precision_score(y_test, y_pred, zero_division=0):.4f}, "
                   f"Recall: {recall_score(y_test, y_pred, zero_division=0):.4f}, F1: {f1_score(y_test, y_pred, zero_division=0):.4f}")
@@ -201,11 +188,10 @@ def run_sifdual(
             all_results[name]['recall'].append(recall_score(y_test, y_pred, zero_division=0))
             all_results[name]['f1'].append(f1_score(y_test, y_pred, zero_division=0))
 
-    # MLP 多次实验
     device = torch.device(f"cuda:{cuda_device}" if torch.cuda.is_available() else "cpu")
     if "MLP" in model_dict and model_dict["MLP"] == "mlp":
         for run_id in range(repeat):
-            print(f"\n=== MLP 第 {run_id + 1} 次实验 ===")
+            print(f"\n=== MLP Experiment {run_id + 1} ===")
             model = MLPClassifier(input_dim).to(device)
             criterion = nn.BCEWithLogitsLoss()
             optimizer = optim.Adam(model.parameters(), lr=LR)
@@ -229,12 +215,10 @@ def run_sifdual(
                     loss.backward()
                     optimizer.step()
                     total_loss += loss.item() * len(yb)
-                    #print(f"\rBatch {i}/{len(train_loader)} processed...", end="")
 
                 avg_loss = total_loss / len(train_loader.dataset)
                 print(f"\nEpoch {epoch}/{EPOCHS} finished, Loss: {avg_loss:.4f}")
 
-                # Early Stopping
                 if avg_loss < best_loss:
                     best_loss = avg_loss
                     best_state = copy.deepcopy(model.state_dict())
@@ -245,28 +229,25 @@ def run_sifdual(
                         print(f"Early stopping at epoch {epoch}")
                         break
 
-        # 载入最佳模型
-        model.load_state_dict(best_state)
-        model.eval()
-        with torch.no_grad():
-            X_test_tensor = torch.tensor(X_test_scaled, dtype=torch.float32).to(device)
-            logits = model(X_test_tensor).squeeze(1).cpu().numpy()
-            y_prob = 1 / (1 + np.exp(-logits))
-            y_pred = (y_prob >= threshold).astype(int)
+            model.load_state_dict(best_state)
+            model.eval()
+            with torch.no_grad():
+                X_test_tensor = torch.tensor(X_test_scaled, dtype=torch.float32).to(device)
+                logits = model(X_test_tensor).squeeze(1).cpu().numpy()
+                y_prob = 1 / (1 + np.exp(-logits))
+                y_pred = (y_prob >= threshold).astype(int)
 
-        # 打印指标
-        print(f"AUROC: {roc_auc_score(y_test, y_prob):.4f}, AUPR: {average_precision_score(y_test, y_prob):.4f}, "
-              f"Acc: {accuracy_score(y_test, y_pred):.4f}, Precision: {precision_score(y_test, y_pred, zero_division=0):.4f}, "
-              f"Recall: {recall_score(y_test, y_pred, zero_division=0):.4f}, F1: {f1_score(y_test, y_pred, zero_division=0):.4f}")
+            print(f"AUROC: {roc_auc_score(y_test, y_prob):.4f}, AUPR: {average_precision_score(y_test, y_prob):.4f}, "
+                  f"Acc: {accuracy_score(y_test, y_pred):.4f}, Precision: {precision_score(y_test, y_pred, zero_division=0):.4f}, "
+                  f"Recall: {recall_score(y_test, y_pred, zero_division=0):.4f}, F1: {f1_score(y_test, y_pred, zero_division=0):.4f}")
 
-        all_results["MLP"]['auroc'].append(roc_auc_score(y_test, y_prob))
-        all_results["MLP"]['aupr'].append(average_precision_score(y_test, y_prob))
-        all_results["MLP"]['acc'].append(accuracy_score(y_test, y_pred))
-        all_results["MLP"]['precision'].append(precision_score(y_test, y_pred, zero_division=0))
-        all_results["MLP"]['recall'].append(recall_score(y_test, y_pred, zero_division=0))
-        all_results["MLP"]['f1'].append(f1_score(y_test, y_pred, zero_division=0))
+            all_results["MLP"]['auroc'].append(roc_auc_score(y_test, y_prob))
+            all_results["MLP"]['aupr'].append(average_precision_score(y_test, y_prob))
+            all_results["MLP"]['acc'].append(accuracy_score(y_test, y_pred))
+            all_results["MLP"]['precision'].append(precision_score(y_test, y_pred, zero_division=0))
+            all_results["MLP"]['recall'].append(recall_score(y_test, y_pred, zero_division=0))
+            all_results["MLP"]['f1'].append(f1_score(y_test, y_pred, zero_division=0))
 
-    # 写 CSV
     os.makedirs(os.path.dirname(output_csv_path), exist_ok=True)
     with open(output_csv_path, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
@@ -275,7 +256,6 @@ def run_sifdual(
         for name in model_dict.keys():
             results = all_results[name]
             n_runs = len(results['auroc'])
-            # 如果是 MLP，多次实验
             if name == "MLP":
                 for idx in range(n_runs):
                     writer.writerow([
@@ -287,7 +267,6 @@ def run_sifdual(
                         f"{results['recall'][idx]:.4f}",
                         f"{results['f1'][idx]:.4f}"
                     ])
-            # 其他模型只跑一次，写一次 
             else:
                 writer.writerow([
                     name, 1,
@@ -298,7 +277,6 @@ def run_sifdual(
                     f"{results['recall'][0]:.4f}",
                     f"{results['f1'][0]:.4f}"
                 ])
-            # 均值
             writer.writerow([
                 name, "mean",
                 f"{np.mean(results['auroc']):.4f}",
@@ -308,5 +286,5 @@ def run_sifdual(
                 f"{np.mean(results['recall']):.4f}",
                 f"{np.mean(results['f1']):.4f}"
             ])
-    print(f"\nMLP均值结果: AUROC={np.mean(all_results['MLP']['auroc']):.4f}, AUPR={np.mean(all_results['MLP']['aupr']):.4f}, acc={np.mean(all_results['MLP']['acc']):.4f}, precision={np.mean(all_results['MLP']['precision']):.4f}, recall={np.mean(all_results['MLP']['recall']):.4f}, F1={np.mean(all_results['MLP']['f1']):.4f}")
-    print(f"\n✅ 结果已保存到 {output_csv_path}")
+    print(f"\nMLP Average Results: AUROC={np.mean(all_results['MLP']['auroc']):.4f}, AUPR={np.mean(all_results['MLP']['aupr']):.4f}, acc={np.mean(all_results['MLP']['acc']):.4f}, precision={np.mean(all_results['MLP']['precision']):.4f}, recall={np.mean(all_results['MLP']['recall']):.4f}, F1={np.mean(all_results['MLP']['f1']):.4f}")
+    print(f"\n✅ Results saved to {output_csv_path}")

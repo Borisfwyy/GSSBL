@@ -4,8 +4,6 @@ from uSIF import run_usif
 from uSIFdual import run_usifdual
 from BoW import run_bow
 from BoWdual import run_bowdual
-from BoWmix import run_bowmix
-from BoWmixdual import run_bowmixdual
 from TextCNN import run_textcnn
 from Trans import run_trans
 from Bilstm import run_bilstm
@@ -14,8 +12,7 @@ from Transdual import run_transdual
 from Bilstmdual import run_bilstmdual
 from Lstm import run_lstm
 from Lstmdual import run_lstmdual
-from GSSBLconcat import GSSBLconcat
-from GSSBLfused import GSSBLfused
+
 
 
 traindata = "dataset/train.txt"
@@ -53,30 +50,22 @@ def cpucode():
         lr = 1e-4
     )
     '''
-    '''
+  
     run_bow(
         train_path=traindata,
         test_path=testdata,
         output_csv_path=result_path + "svm/zi-dan-bow.csv",
         repeat=1,
         cuda_device=cuda,
-        use_subword=True, #False使用主字,True使用子字
+        use_subword=True, 
         lr = 1e-4
     )
-    '''
-    run_bowmix(
-        train_path=traindata,
-        test_path=testdata,
-        output_csv_path=result_path + "svm/mix-dan-bow.csv",
-        repeat=1,
-        cuda_device=cuda,
-        use_subword=True, #False使用主字,True使用子字
-        lr = 1e-4
-    )
+   
+
     
 
 
-def basecode(): # 单独的这个是，单塔
+def basecode(): 
     '''
     run_textcnn(
         train_path=traindata,
@@ -135,7 +124,7 @@ def basecode(): # 单独的这个是，单塔
     ) 
     
 
-def basecodedual(): # 单独的这个是，单塔
+def basecodedual(): 
     '''
     run_textcnndual(
         train_path=traindata,
@@ -220,76 +209,23 @@ def cpucodedual():
         lr = 1e-4
     )
     '''
-    '''
+    
     run_bowdual(
         train_path=traindata,
         test_path=testdata,
         output_csv_path=result_path + "svm/zi-dual-bow.csv",
         repeat=1,
         cuda_device=cuda,
-        use_subword=True, #False使用主字,True使用子字
+        use_subword=True, 
         lr = 1e-4
     )
     
-    '''
-    run_bowmixdual(
-        train_path=traindata,
-        test_path=testdata,
-        output_csv_path=result_path + "svm/mix-dual-bow.csv",
-        repeat=1,
-        cuda_device=cuda,
-        use_subword=True, #False使用主字,True使用子字
-        lr = 1e-4
-    )
 
-def gssblconcat():
 
-    cuda_canshu = 7
-    result_path_canshu = "result/canshu/gssblconcat/"
-    GSSBLconcat(
-        train_path=traindata,
-        test_path=testdata,
-        use_subword=False, #false就是主字义
-        word_vec_path_meaning      = "model/sg512main.json",
-        word_vec_path_shape        = "model/glyph_vae_features.json", #字形固定子
-        repeat=1,
-        cuda_device=cuda_canshu,
-        output_csv_path=result_path_canshu + "saveresult_results-1.csv",
-        batchsize=64,
-        seed='random',  # 'random'
-        lr=1e-4,
-        hidden_size=256 #句嵌入维度=2*hidden_size
-    )
-
-def gssblfused():
-
-    cuda_canshu = 7
-    result_path_canshu = "result/canshu/gssblconcat/"
-    GSSBLfused(
-        train_path=traindata,
-        test_path=testdata,
-        use_subword=False, #false就是主字义
-        word_vec_path_meaning_main = "model/sg512main.json",
-        word_vec_path_meaning_sub  = "model/sg512sub.json",
-        word_vec_path_shape        = "model/glyph_vae_features.json", #字形固定子
-        repeat=1,
-        cuda_device=cuda_canshu,
-        output_csv_path=result_path_canshu + "saveresult_results-1.csv",
-        batchsize=64,
-        seed='random',  # 'random'
-        lr=1e-4,
-        hidden_size=256 #句嵌入维度=2*hidden_size
-    )
-    
 if __name__ == "__main__":
 
     print("*************-------------------*******************")
-
-    #都使用保存结果的这个版本来吧
-
-    #cpucode()
-    #cpucodedual()
-    #basecode()
-    #basecodedual()
-    #gssblconcat()
-    gssblfused()
+    cpucode()
+    cpucodedual()
+    basecode()
+    basecodedual()

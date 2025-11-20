@@ -21,7 +21,6 @@ from sklearn.svm import SVC
 
 patch_sklearn()
 
-# ===== MLP 定义 =====
 class MLPClassifier(nn.Module):
     def __init__(self, input_dim):
         super().__init__()
@@ -37,11 +36,11 @@ class MLPClassifier(nn.Module):
 
 def run_sif(
     word_vec_path: str,
-    data_paths: list,   # [train_path, test_path]
+    data_paths: list,
     output_csv_path: str,
     repeat: int = 5,
     cuda_device: int = 0,
-    use_subword: bool = False,   # 新增参数
+    use_subword: bool = False,
     lr = 1e-4
 ):
     SMOOTHING_A = 1e-3
@@ -50,17 +49,15 @@ def run_sif(
     BATCH_SIZE = 64
     LR = lr
     setmax = 100
-    threshold = 0.5  # 评价指标计算阈值
-    print(f"使用子字: {use_subword}, cuda_device: {cuda_device}, SIF..., lr={LR}, save：{output_csv_path}, json: {word_vec_path}, repeat={repeat}, 最大循环={setmax}")    
+    threshold = 0.5
+    print(f"Using subword: {use_subword}, cuda_device: {cuda_device}, SIF..., lr={LR}, save：{output_csv_path}, json: {word_vec_path}, repeat={repeat}, max iterations={setmax}")
     train_path, test_path = data_paths
 
-    # 1. 加载词向量
     with open(word_vec_path, "r", encoding="utf-8") as f:
         word_vec = json.load(f)
         word_vec = {k: np.array(v) for k, v in word_vec.items()}
     print(f"Loaded word vectors from {word_vec_path}, total {len(word_vec)} words.")
 
-    # 2. 正例统计
     def load_positive_sentences(file_path):
         sentences = []
         with open(file_path, "r", encoding="utf-8") as f:
@@ -90,7 +87,6 @@ def run_sif(
 
     word_prob = compute_word_freq(positive_sentences, use_subword=use_subword)
 
-    # 3. SIF embedding
     def compute_sif_embedding_pair(sent_a, sent_b, word_vec, word_prob, a=SMOOTHING_A, use_subword=False):
         combined_sentence = sent_a + " " + sent_b
         words = combined_sentence.strip().split()
@@ -105,7 +101,6 @@ def run_sif(
             raise ValueError(f"SIF embedding is all zeros! Sentence pair: '{sent_a}' + '{sent_b}'")
         return np.mean(np.vstack(vecs), axis=0)
 
-    # 4. 去第一个主成分
     def remove_pc(X, npc=1):
         svd = TruncatedSVD(n_components=npc, n_iter=7, random_state=42)
         svd.fit(X)
@@ -116,11 +111,10 @@ def run_sif(
         else:
             return X - X.dot(pc.T).dot(pc)
 
-    # 5. 生成特征和标签
     def prepare_features_labels(file_path):
         X, y = [], []
         with open(file_path, "r", encoding="utf-8") as f:
-            for line in tqdm(f, desc=f"生成特征: {file_path}"):
+            for line in tqdm(f, desc=f"Generating features: {file_path}"):
                 a, b, label = line.strip().split("\t")
                 feat = compute_sif_embedding_pair(a, b, word_vec, word_prob, a=SMOOTHING_A, use_subword=use_subword)
                 X.append(feat)
@@ -133,26 +127,23 @@ def run_sif(
     X_test, y_test = prepare_features_labels(test_path)
     input_dim = X_train.shape[1]
 
-    # 6. 模型字典
     model_dict = {
-        #"LR": "lr",
+        "LR": "lr",
         "SVM": "svm",
-        #"XGBoost": "xgb",
-        #"LightGBM": "lgbm",
-        #"MLP": "mlp"
+        "XGBoost": "xgb",
+        "LightGBM": "lgbm",
+        "MLP": "mlp"
     }
 
     all_results = {name: {'auroc': [], 'aupr': [], 'acc': [], 'precision': [], 'recall': [], 'f1': []} 
                    for name in model_dict.keys()}
 
-    # 标准化
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
-    # ===== 非 MLP 模型训练（只一次） =====
     for name, mtype in model_dict.items():
-        print(f"\n=== 模型 {name} ===")
+        print(f"\n=== Model {name} ===")
 
         if mtype == "lr":
             model = LogisticRegression(max_iter=setmax, class_weight='balanced')
@@ -161,11 +152,10 @@ def run_sif(
             y_pred = model.predict(X_test_scaled)
 
         elif mtype == "svm":
-            print("模型调整回linearsvc了，可能会不收敛，多放了点小数点，迭代上限1000+平衡")
             model = LinearSVC(max_iter=1000, class_weight='balanced', C=1, loss="hinge")
             model.fit(X_train_scaled, y_train)
-            y_score = model.decision_function(X_test_scaled)   # 用于 AUROC / AUPR
-            y_pred = model.predict(X_test_scaled)              # 用于 ACC / P / R / F1
+            y_score = model.decision_function(X_test_scaled)
+            y_pred = model.predict(X_test_scaled)
 
         elif mtype == "xgb":
             model = XGBClassifier(use_label_encoder=False, eval_metric="logloss")
@@ -182,7 +172,6 @@ def run_sif(
         else:
             continue
 
-        # ===== 统一指标计算 =====
         auroc = roc_auc_score(y_test, y_score)
         aupr = average_precision_score(y_test, y_score)
         acc = accuracy_score(y_test, y_pred)
@@ -190,7 +179,6 @@ def run_sif(
         recall = recall_score(y_test, y_pred, zero_division=0)
         f1 = f1_score(y_test, y_pred, zero_division=0)
 
-        # 复制 repeat 次
         for _ in range(repeat):
             all_results[name]['auroc'].append(auroc)
             all_results[name]['aupr'].append(aupr)
@@ -199,15 +187,13 @@ def run_sif(
             all_results[name]['recall'].append(recall)
             all_results[name]['f1'].append(f1)
 
-        print(f">>> {name} 指标:")
+        print(f">>> {name} Metrics:")
         print(f"AUROC={auroc:.4f}, AUPR={aupr:.4f}, ACC={acc:.4f}, Precision={precision:.4f}, Recall={recall:.4f}, F1={f1:.4f}")
 
-
-    # ===== MLP 模型训练（PyTorch） =====
     device = torch.device(f"cuda:{cuda_device}" if torch.cuda.is_available() else "cpu")
     if "MLP" in model_dict and model_dict["MLP"] == "mlp":
         for run_id in range(repeat):
-            print(f"\n--- MLP 第 {run_id+1} 次实验 ---")
+            print(f"\n--- MLP Experiment {run_id+1} ---")
             model = MLPClassifier(input_dim).to(device)
             criterion = nn.BCEWithLogitsLoss()
             optimizer = optim.Adam(model.parameters(), lr=LR)
@@ -239,7 +225,6 @@ def run_sif(
                     if wait >= PATIENCE:
                         break
 
-            # 载入最佳模型
             model.load_state_dict(best_state)
             model.eval()
             with torch.no_grad():
@@ -263,9 +248,8 @@ def run_sif(
             all_results["MLP"]['recall'].append(recall)
             all_results["MLP"]['f1'].append(f1)
 
-            print(f"MLP 第 {run_id+1} 次指标: AUROC={auroc:.8f}, AUPR={aupr:.8f}, ACC={acc:.8f}, Precision={precision:.8f}, Recall={recall:.8f}, F1={f1:.8f}")
+            print(f"MLP Experiment {run_id+1} Metrics: AUROC={auroc:.8f}, AUPR={aupr:.8f}, ACC={acc:.8f}, Precision={precision:.8f}, Recall={recall:.8f}, F1={f1:.8f}")
 
-    # 写 CSV
     os.makedirs(os.path.dirname(output_csv_path) or ".", exist_ok=True)
     with open(output_csv_path, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
@@ -283,7 +267,6 @@ def run_sif(
                     f"{results['recall'][idx]:.8f}",
                     f"{results['f1'][idx]:.8f}"
                 ])
-            # 均值
             writer.writerow([
                 name, "mean",
                 f"{np.mean(results['auroc']):.8f}",
@@ -293,4 +276,4 @@ def run_sif(
                 f"{np.mean(results['recall']):.8f}",
                 f"{np.mean(results['f1']):.8f}"
             ])
-    print(f"\n✅ 所有结果已保存至 {output_csv_path}")
+    print(f"\n✅ All results saved to {output_csv_path}")

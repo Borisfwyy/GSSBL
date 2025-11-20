@@ -16,11 +16,11 @@ def run_lstmdual(
     output_csv_path,
     repeat=5,
     cuda_device=0,
-    use_subword=False,  # False用主字，True用子字
+    use_subword=False,
     lr = 1e-4,     
     savemodel = True,
     savecanshu  = True,
-    avg_tokens=None  # None表示全序列mean pooling
+    avg_tokens=None
 ):
     device = torch.device(f"cuda:{cuda_device}" if torch.cuda.is_available() else "cpu")
     
@@ -33,17 +33,15 @@ def run_lstmdual(
     EPOCHS = 100
     show_progress=False
 
-    print(f"DualTower LSTM", "使用子字" if use_subword else "使用主字", f"词向量: {word_vec_path}, 设备: {device}, LR={LR}, repeat={repeat}")
+    print(f"DualTower LSTM", "Using subword" if use_subword else "Using main word", f"Word vectors: {word_vec_path}, Device: {device}, LR={LR}, repeat={repeat}")
     
-    # 加载词向量
     with open(word_vec_path, "r", encoding="utf-8") as f:
         raw_vec = json.load(f)
     raw_vec = {k: np.array(v, dtype=np.float32) for k, v in raw_vec.items()}
 
     EMBED_DIM = next(iter(raw_vec.values())).shape[0]
-    print(f"自动检测到嵌入维度 EMBED_DIM = {EMBED_DIM}")
+    print(f"Detected embedding dimension EMBED_DIM = {EMBED_DIM}")
 
-    # 构建词表
     def build_vocab(paths):
         vocab = set()
         for p in paths:
@@ -66,7 +64,6 @@ def run_lstmdual(
         if w in raw_vec:
             embedding_matrix[idx] = raw_vec[w]
 
-    # ==== Dataset ====
     class DatasetWrap(Dataset):
         def __init__(self, filepath):
             self.data = []
@@ -109,7 +106,6 @@ def run_lstmdual(
         labels = torch.tensor(labels, dtype=torch.float32)
         return s1_padded.to(device), s2_padded.to(device), labels.to(device), len1s, len2s
 
-    # ==== 双塔 Single LSTM ====
     class DualTowerLSTM(nn.Module):
         def __init__(self, embedding_matrix, hidden_size=256, dropout=0.3, avg_tokens=None):
             super().__init__()
@@ -118,7 +114,6 @@ def run_lstmdual(
             self.embedding.weight.data.copy_(torch.from_numpy(embedding_matrix))
             self.embedding.weight.requires_grad = False
 
-            # 两个独立的单向LSTM
             self.lstm1 = nn.LSTM(embed_dim, hidden_size, batch_first=True, bidirectional=False)
             self.lstm2 = nn.LSTM(embed_dim, hidden_size, batch_first=True, bidirectional=False)
             self.dropout = nn.Dropout(dropout)
@@ -152,11 +147,10 @@ def run_lstmdual(
             logits = self.fc(features).squeeze(1)
             return logits
 
-    # ==== 训练和评估 ==== (保持原逻辑) ====
     def train_one_epoch(model, dataloader, criterion, optimizer):
         model.train()
         total_loss = 0
-        for s1, s2, labels, len1, len2 in tqdm(dataloader, desc="训练", disable=not show_progress):
+        for s1, s2, labels, len1, len2 in tqdm(dataloader, desc="Training", disable=not show_progress):
             optimizer.zero_grad()
             logits = model(s1, s2, len1, len2)
             loss = criterion(logits, labels)
@@ -169,7 +163,7 @@ def run_lstmdual(
         model.eval()
         preds, trues = [], []
         with torch.no_grad():
-            for s1, s2, labels, len1, len2 in tqdm(dataloader, desc="测试", disable=not show_progress):
+            for s1, s2, labels, len1, len2 in tqdm(dataloader, desc="Testing", disable=not show_progress):
                 logits = model(s1, s2, len1, len2)
                 probs = torch.sigmoid(logits).cpu().numpy()
                 preds.extend(probs)
@@ -191,7 +185,7 @@ def run_lstmdual(
     results = []
 
     for run in range(1, repeat + 1):
-        print(f"\n🔁 实验 {run}/{repeat}")
+        print(f"\nExperiment {run}/{repeat}")
         model = DualTowerLSTM(embedding_matrix, hidden_size=HIDDEN_SIZE, dropout=DROPOUT, avg_tokens=avg_tokens).to(device)
         criterion = nn.BCEWithLogitsLoss()
         optimizer = torch.optim.Adam(model.parameters(), lr=LR)
@@ -211,7 +205,7 @@ def run_lstmdual(
             else:
                 wait += 1
                 if wait >= PATIENCE:
-                    print(f"⚠️ 提前终止训练 after {epoch} epochs")
+                    print(f"Early stopping triggered after {epoch} epochs")
                     break
 
         model.load_state_dict(best_state)
@@ -220,17 +214,15 @@ def run_lstmdual(
             "AUROC": AUROC, "AUPR": AUPR, "Accuracy": ACC,
             "Precision": PREC, "Recall": REC, "F1": F1
         })
-        print(f"✅ Run {run}: AUROC={AUROC:.4f}, AUPR={AUPR:.4f}, ACC={ACC:.4f}, PREC={PREC:.4f}, REC={REC:.4f}, F1={F1:.4f}")
+        print(f"Run {run}: AUROC={AUROC:.4f}, AUPR={AUPR:.4f}, ACC={ACC:.4f}, PREC={PREC:.4f}, REC={REC:.4f}, F1={F1:.4f}")
 
-        # 保存模型
         if savemodel:
             model_dir = os.path.dirname(output_csv_path)
             os.makedirs(model_dir, exist_ok=True)
             model_path = os.path.join(model_dir, f"dual_lstm_run_{run}.pt")
             torch.save(model.state_dict(), model_path)
-            print(f"✅ 第 {run} 次训练模型已保存至 {model_path}")
+            print(f"Model for run {run} saved to {model_path}")
 
-        # 阈值指标
         if savecanshu:
             thresholds = np.arange(0.1, 1.0, 0.1)
             rows = []
@@ -258,9 +250,8 @@ def run_lstmdual(
                 writer = csv.writer(f)
                 writer.writerow(["Threshold", "Accuracy", "Precision", "Recall", "F1"])
                 writer.writerows(rows)
-            print(f"✅ 第 {run} 次训练阈值指标已保存至 {thresh_csv_path}")
+            print(f"Threshold metrics for run {run} saved to {thresh_csv_path}")
 
-    # 保存CSV
     fieldnames = ["Run", "AUROC", "AUPR", "Accuracy", "Precision", "Recall", "F1"]
     with open(output_csv_path, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -272,5 +263,5 @@ def run_lstmdual(
         for key in results[0]:
             avg_row[key] = np.mean([r[key] for r in results])
         writer.writerow(avg_row)
-    print(f"\n平均结果: " + ", ".join([f"{k}: {v:.4f}" for k,v in avg_row.items() if k != "Run"]))
-    print(f"\n📄 结果已保存至 {output_csv_path}")
+    print(f"\nAverage results: " + ", ".join([f"{k}: {v:.4f}" for k,v in avg_row.items() if k != "Run"]))
+    print(f"\nResults saved to {output_csv_path}")

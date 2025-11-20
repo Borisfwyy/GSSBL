@@ -1,5 +1,3 @@
-# 双塔，改好了的，能直接跑
-
 import json
 import torch
 import torch.nn as nn
@@ -17,12 +15,11 @@ def run_textcnndual(
     output_csv_path: str,
     repeat: int = 5,
     cuda_device: int | None = None,
-    use_subword: bool = True,   # 新增参数：True只用子字，False用主字
+    use_subword: bool = True,
     lr = 1e-4,
     savemodel = False,
     savecanshu  = True
 ):
-    # ==== 固定超参数 ====
     BATCH_SIZE = 64
     EPOCHS = 100
     PATIENCE = 100
@@ -30,7 +27,7 @@ def run_textcnndual(
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     MAX_LEN = 30
     show_progress = False
-    print(f"进度条显示？ {show_progress}")
+    print(f"Show progress bar? {show_progress}")
 
     if torch.cuda.is_available():
         if cuda_device is None:
@@ -40,16 +37,15 @@ def run_textcnndual(
     else:
         DEVICE = torch.device("cpu")
 
-    print(f"textcnn， 使用设备: {DEVICE}, use_subword: {use_subword}， word_vec_path: {word_vec_path}, lr={LEARNING_RATE}, save：{output_csv_path}, json: {word_vec_path}")
-    # ==== 加载词向量 ====
+    print(f"textcnn, Using device: {DEVICE}, use_subword: {use_subword}, word_vec_path: {word_vec_path}, lr={LEARNING_RATE}, save：{output_csv_path}, json: {word_vec_path}")
+    
     with open(word_vec_path, "r", encoding="utf-8") as f:
         word_vec = json.load(f)
     word_vec = {k: torch.tensor(v, dtype=torch.float32) for k, v in word_vec.items()}
 
     EMBED_DIM = len(next(iter(word_vec.values())))
-    print(f"Embedding 维度自动设置为 {EMBED_DIM}")
+    print(f"Embedding dimension automatically set to {EMBED_DIM}")
 
-    # ==== 构建词表 ====
     def build_vocab(paths, use_subword=True):
         vocab = {}
         idx = 1
@@ -69,9 +65,8 @@ def run_textcnndual(
         return vocab
 
     vocab = build_vocab([train_path, test_path], use_subword)
-    vocab_size = len(vocab) + 1  # padding=0
+    vocab_size = len(vocab) + 1
 
-    # ==== 生成索引序列 ====
     def sent2idx(sent, vocab, max_len=MAX_LEN, use_subword=True):
         idxs = []
         words = sent.strip().split()
@@ -84,21 +79,16 @@ def run_textcnndual(
             idxs += [0] * (max_len - len(idxs))
         return idxs
 
-    # ==== 构建 embedding 矩阵（严格控制 use_subword） ====
     embedding_matrix = torch.zeros(vocab_size, EMBED_DIM)
 
     for token, idx in vocab.items():
-        # token 本身已经是按照 use_subword 构建的（主字或子字）
         if token in word_vec:
             embedding_matrix[idx] = word_vec[token]
         else:
-            # 回退：如果是子字但在 word_vec 中没有，尝试用主字查找
-            main = token.split("|")[0]  # 无论 token 是主字还是子字，都尝试主字回退
+            main = token.split("|")[0]
             if main in word_vec:
                 embedding_matrix[idx] = word_vec[main]
 
-
-    # ==== Dataset ====
     class TextPairDataset(Dataset):
         def __init__(self, path, vocab, max_len=MAX_LEN, use_subword=True):
             self.data = []
@@ -120,7 +110,6 @@ def run_textcnndual(
             a, b, label = self.data[idx]
             return torch.tensor(a), torch.tensor(b), torch.tensor(label, dtype=torch.float32)
 
-    # ==== TextCNN模型 ====
     class TextCNN(nn.Module):
         def __init__(self, embedding_matrix, n_filters=100, filter_sizes=[3,4,5], output_dim=1, dropout=0.3):
             super().__init__()
@@ -157,11 +146,10 @@ def run_textcnndual(
             out = self.fc(features)
             return out.squeeze()
 
-    # ==== 训练和测试函数 ====
     def train_epoch(model, loader, optimizer, criterion):
         model.train()
         losses = []
-        for a, b, labels in tqdm(loader, desc="训练", disable=not show_progress):
+        for a, b, labels in tqdm(loader, desc="Training", disable=not show_progress):
             a, b, labels = a.to(DEVICE), b.to(DEVICE), labels.to(DEVICE)
             optimizer.zero_grad()
             outputs = model(a, b)
@@ -175,7 +163,7 @@ def run_textcnndual(
         model.eval()
         all_probs, all_labels = [], []
         with torch.no_grad():
-            for a, b, labels in tqdm(loader, desc="测试", disable=not show_progress):
+            for a, b, labels in tqdm(loader, desc="Testing", disable=not show_progress):
                 a, b, labels = a.to(DEVICE), b.to(DEVICE), labels.to(DEVICE)
                 outputs = model(a, b)
                 all_probs.extend(outputs.cpu().numpy())
@@ -189,12 +177,10 @@ def run_textcnndual(
         f1 = f1_score(all_labels, y_pred, zero_division=0)
         return auroc, aupr, acc, precision, recall, f1
 
-
-    # ==== 多次训练 ====
     all_results = []
 
     for run_id in range(1, repeat + 1):
-        print(f"\n=== 第 {run_id} 次训练 ===")
+        print(f"\n=== Training Run {run_id} ===")
 
         train_dataset = TextPairDataset(train_path, vocab, MAX_LEN, use_subword)
         test_dataset = TextPairDataset(test_path, vocab, MAX_LEN, use_subword)
@@ -206,14 +192,13 @@ def run_textcnndual(
         optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
         criterion = nn.BCEWithLogitsLoss()
 
-
         best_loss = float('inf')
         patience_counter = 0
         best_state_dict = None
 
         for epoch in range(1, EPOCHS + 1):
             train_loss = train_epoch(model, train_loader, optimizer, criterion)
-            print(f"Epoch {epoch}/{EPOCHS} | 训练损失: {train_loss:.4f}")
+            print(f"Epoch {epoch}/{EPOCHS} | Training Loss: {train_loss:.4f}")
 
             if train_loss < best_loss:
                 best_loss = train_loss
@@ -221,22 +206,20 @@ def run_textcnndual(
                 best_state_dict = {k: v.cpu().clone() for k, v in model.state_dict().items()}
             else:
                 patience_counter += 1
-                print(f"训练集loss未下降（{patience_counter}/{PATIENCE}）")
+                print(f"Training set loss not improved ({patience_counter}/{PATIENCE})")
                 if patience_counter >= PATIENCE:
-                    print(f"训练提前终止，连续{PATIENCE}轮loss未下降")
+                    print(f"Early stopping, no loss improvement for {PATIENCE} consecutive epochs")
                     break
 
         model.load_state_dict(best_state_dict)
         model.to(DEVICE)
         auroc, aupr, acc, precision, recall, f1 = test_model(model, test_loader)
 
-        # 保存阈值指标 CSV
         if savecanshu:
-            thresholds = np.arange(0.1, 1.0, 0.1)  # 0.1~0.9
+            thresholds = np.arange(0.1, 1.0, 0.1)
             rows = []
             all_probs, all_labels = [], []
 
-            # 获取所有测试输出和标签
             model.eval()
             with torch.no_grad():
                 for a, b, labels in test_loader:
@@ -262,28 +245,24 @@ def run_textcnndual(
                 writer.writerow(["Threshold", "Accuracy", "Precision", "Recall", "F1"])
                 writer.writerows(rows)
 
-            print(f"✅ 阈值指标已保存到 {thresh_csv_path}")
+            print(f"✅ Threshold metrics saved to {thresh_csv_path}")
 
-        if savemodel: # 地址与csv同级
+        if savemodel:
             model_dir = os.path.dirname(output_csv_path)
             os.makedirs(model_dir, exist_ok=True)
             model_path = os.path.join(model_dir, f"textcnn_run_{run_id}.pt")
             torch.save(model.state_dict(), model_path)
-            print(f"✅ 第 {run_id} 次训练模型已保存至 {model_path}")
-
+            print(f"✅ Model from Training Run {run_id} saved to {model_path}")
 
         print(f"Run {run_id} -- AUROC: {auroc:.4f}, AUPR: {aupr:.4f}, Acc: {acc:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}")
         all_results.append({'auroc': auroc, 'aupr': aupr, 'acc': acc, 'precision': precision, 'recall': recall, 'f1': f1})
 
-
-    # ==== 保存 CSV（每次训练 + 平均值） ====
     os.makedirs(os.path.dirname(output_csv_path), exist_ok=True)
     with open(output_csv_path, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["Run", "AUROC", "AUPR", "Accuracy", "Precision", "Recall", "F1"])
         for i, r in enumerate(all_results, start=1):
             writer.writerow([i, r['auroc'], r['aupr'], r['acc'], r['precision'], r['recall'], r['f1']])
-        # 均值
         mean_auroc = np.mean([r['auroc'] for r in all_results])
         mean_aupr = np.mean([r['aupr'] for r in all_results])
         mean_acc = np.mean([r['acc'] for r in all_results])
@@ -292,5 +271,5 @@ def run_textcnndual(
         mean_f1 = np.mean([r['f1'] for r in all_results])
         writer.writerow(["mean", mean_auroc, mean_aupr, mean_acc, mean_precision, mean_recall, mean_f1])
 
-    print(f"平均指标 -- AUROC: {mean_auroc:.4f}, AUPR: {mean_aupr:.4f}, Acc: {mean_acc:.4f}, Precision: {mean_precision:.4f}, Recall: {mean_recall:.4f}, F1: {mean_f1:.4f}")
-    print(f"\n✅ 所有 run 的结果及均值已保存至 {output_csv_path}")
+    print(f"Average Metrics -- AUROC: {mean_auroc:.4f}, AUPR: {mean_aupr:.4f}, Acc: {mean_acc:.4f}, Precision: {mean_precision:.4f}, Recall: {mean_recall:.4f}, F1: {mean_f1:.4f}")
+    print(f"\n✅ All run results and averages saved to {output_csv_path}")

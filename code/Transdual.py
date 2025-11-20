@@ -1,4 +1,4 @@
-# 双塔 Transformer（每句 CLS 作为句嵌入，concat 输入 MLP）
+# Dual-Tower Transformer (Each sentence's CLS as sentence embedding, concat input to MLP)
 import json
 import numpy as np
 import torch
@@ -11,7 +11,7 @@ import os
 
 def run_transdual(train_path, test_path, word_vec_path, output_csv, repeat=5, cuda_device=None,
                   use_subword=False, lr=1e-4, savemodel=True, savecanshu=True):
-    # 设备选择
+    # Device selection
     if torch.cuda.is_available() and cuda_device is not None:
         device = torch.device(f"cuda:{cuda_device}")
     elif torch.cuda.is_available():
@@ -27,20 +27,20 @@ def run_transdual(train_path, test_path, word_vec_path, output_csv, repeat=5, cu
     NUM_HEADS = 8
     NUM_LAYERS = 6
     show_progress = False
-    print(f"进度条显示？ {show_progress}")
+    print(f"Show progress bar? {show_progress}")
 
     CLS_TOKEN, SEP_TOKEN, PAD_TOKEN = "[CLS]", "[SEP]", "[PAD]"
-    print(f"Transformer encoder，使用设备: {device}, use_subword: {use_subword}, word_vec_path: {word_vec_path}, lr={LR}, repeat={repeat}")
+    print(f"Transformer encoder, Using device: {device}, use_subword: {use_subword}, word_vec_path: {word_vec_path}, lr={LR}, repeat={repeat}")
 
-    # ===== 加载词向量 =====
+    # ===== Load word vectors =====
     with open(word_vec_path, encoding="utf-8") as f:
         raw_vec = json.load(f)
     raw_vec = {k: np.array(v, dtype=np.float32) for k, v in raw_vec.items()}
 
     EMBED_DIM = next(iter(raw_vec.values())).shape[0]
-    print(f"自动检测到嵌入维度 EMBED_DIM = {EMBED_DIM}")
+    print(f"Automatically detected embedding dimension EMBED_DIM = {EMBED_DIM}")
 
-    # ===== 构建词表 =====
+    # ===== Build vocabulary =====
     def build_vocab(paths):
         vocab = set([CLS_TOKEN, SEP_TOKEN, PAD_TOKEN])
         for p in paths:
@@ -61,7 +61,7 @@ def run_transdual(train_path, test_path, word_vec_path, output_csv, repeat=5, cu
     vocab_list = build_vocab([train_path, test_path])
     word2idx = {w: i for i, w in enumerate(vocab_list)}
 
-    # ===== 构造 embedding 矩阵 =====
+    # ===== Construct embedding matrix =====
     embedding_matrix = np.zeros((len(word2idx), EMBED_DIM), dtype=np.float32)
     for w, idx in word2idx.items():
         if w in raw_vec:
@@ -108,7 +108,7 @@ def run_transdual(train_path, test_path, word_vec_path, output_csv, repeat=5, cu
             s2_ids, s2_mask = self.encode_sentence(s2)
             return s1_ids, s1_mask, s2_ids, s2_mask, torch.tensor(label, dtype=torch.float32)
 
-    # ===== 双塔模型 =====
+    # ===== Dual-Tower Model =====
     class DualBERTClassifier(nn.Module):
         def __init__(self, embedding_matrix, max_len=MAX_SEQ_LEN, embed_dim=EMBED_DIM):
             super().__init__()
@@ -150,11 +150,11 @@ def run_transdual(train_path, test_path, word_vec_path, output_csv, repeat=5, cu
             logits = self.mlp(concat_vec).squeeze(1)
             return logits
 
-    # ===== 训练函数 =====
+    # ===== Training Functions =====
     def train_one_epoch(model, loader, criterion, optimizer):
         model.train()
         total_loss = 0
-        for s1_ids, s1_mask, s2_ids, s2_mask, labels in tqdm(loader, desc="训练", disable=not show_progress):
+        for s1_ids, s1_mask, s2_ids, s2_mask, labels in tqdm(loader, desc="Training", disable=not show_progress):
             s1_ids, s1_mask, s2_ids, s2_mask, labels = s1_ids.to(device), s1_mask.to(device), \
                                                       s2_ids.to(device), s2_mask.to(device), labels.to(device)
             optimizer.zero_grad()
@@ -169,7 +169,7 @@ def run_transdual(train_path, test_path, word_vec_path, output_csv, repeat=5, cu
         model.eval()
         probs_all, labels_all = [], []
         with torch.no_grad():
-            for s1_ids, s1_mask, s2_ids, s2_mask, labels in tqdm(loader, desc="测试", disable=not show_progress):
+            for s1_ids, s1_mask, s2_ids, s2_mask, labels in tqdm(loader, desc="Testing", disable=not show_progress):
                 s1_ids, s1_mask, s2_ids, s2_mask = s1_ids.to(device), s1_mask.to(device), s2_ids.to(device), s2_mask.to(device)
                 logits = model(s1_ids, s1_mask, s2_ids, s2_mask)
                 probs_all.extend(torch.sigmoid(logits).cpu().numpy())
@@ -184,10 +184,10 @@ def run_transdual(train_path, test_path, word_vec_path, output_csv, repeat=5, cu
             "f1": f1_score(labels_all, y_pred, zero_division=0)
         }
 
-    # ===== 多次训练 =====
+    # ===== Multiple Training Runs =====
     results_all = []
     for run_id in range(1, repeat+1):
-        print(f"\n=== 第 {run_id} 次训练 ===")
+        print(f"\n=== Training Run {run_id} ===")
         train_data = DatasetWrap(train_path)
         test_data = DatasetWrap(test_path)
         train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
@@ -217,15 +217,15 @@ def run_transdual(train_path, test_path, word_vec_path, output_csv, repeat=5, cu
         print(f"Run {run_id} -- " + ", ".join([f"{k}: {v:.4f}" for k,v in metrics.items()]))
         results_all.append(metrics)
 
-        # ===== 保存模型 =====
+        # ===== Save Model =====
         if savemodel:
             model_dir = os.path.dirname(output_csv)
             os.makedirs(model_dir, exist_ok=True)
             model_path = os.path.join(model_dir, f"transdual_run_{run_id}.pt")
             torch.save(model.state_dict(), model_path)
-            print(f"✅ 第 {run_id} 次训练模型已保存至 {model_path}")
+            print(f"✅ Model from Training Run {run_id} saved to {model_path}")
 
-        # ===== 阈值 CSV =====
+        # ===== Threshold Metrics CSV =====
         if savecanshu:
             thresholds = np.arange(0.1,1.0,0.1)
             rows=[]
@@ -251,9 +251,9 @@ def run_transdual(train_path, test_path, word_vec_path, output_csv, repeat=5, cu
                 writer = csv.writer(f)
                 writer.writerow(["Threshold","Accuracy","Precision","Recall","F1"])
                 writer.writerows(rows)
-            print(f"✅ 第 {run_id} 次训练阈值指标已保存至 {thresh_csv_path}")
+            print(f"✅ Threshold metrics from Training Run {run_id} saved to {thresh_csv_path}")
 
-    # ===== 写总 CSV =====
+    # ===== Write Summary CSV =====
     os.makedirs(os.path.dirname(output_csv), exist_ok=True)
     with open(output_csv,"w",newline="",encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -263,5 +263,5 @@ def run_transdual(train_path, test_path, word_vec_path, output_csv, repeat=5, cu
         avg_metrics = {k: np.mean([r[k] for r in results_all]) for k in results_all[0]}
         writer.writerow(["mean", avg_metrics["auroc"], avg_metrics["aupr"], avg_metrics["acc"],
                          avg_metrics["precision"], avg_metrics["recall"], avg_metrics["f1"]])
-    print(f"\nMEAN结果: " + ", ".join([f"{k}: {v:.4f}" for k,v in avg_metrics.items()]))
-    print(f"\n✅ 所有结果及平均值已保存至 {output_csv}")
+    print(f"\nMEAN Results: " + ", ".join([f"{k}: {v:.4f}" for k,v in avg_metrics.items()]))
+    print(f"\n✅ All results and averages saved to {output_csv}")

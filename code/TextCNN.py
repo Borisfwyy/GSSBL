@@ -1,5 +1,3 @@
-# 单塔 TextCNN 句子对合并版
-
 import json
 import torch
 import torch.nn as nn
@@ -17,21 +15,20 @@ def run_textcnn(
     output_csv_path: str,
     repeat: int = 5,
     cuda_device: int | None = None,
-    use_subword: bool = True,   # True只用子字，False用主字
+    use_subword: bool = True,
     lr = 1e-4,
     savemodel = False,
     savecanshu  = True
 ):
-    # ==== 固定超参数 ====
     BATCH_SIZE = 64
     EPOCHS = 100
     PATIENCE = 100
     LEARNING_RATE = lr
     DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     MAX_LEN = 30
-    SEQ_LEN = MAX_LEN * 2 + 1  # 两句合并 + 1个SEP
+    SEQ_LEN = MAX_LEN * 2 + 1
     show_progress = False
-    print(f"进度条显示？ {show_progress}")
+    print(f"Show progress bar? {show_progress}")
 
     if torch.cuda.is_available():
         if cuda_device is None:
@@ -41,21 +38,18 @@ def run_textcnn(
     else:
         DEVICE = torch.device("cpu")
 
-    print(f"textcnn， 使用设备: {DEVICE}, use_subword: {use_subword}, lr={LEARNING_RATE}")
+    print(f"textcnn, Using device: {DEVICE}, use_subword: {use_subword}, lr={LEARNING_RATE}")
 
-    # ==== 加载词向量 ====
     with open(word_vec_path, "r", encoding="utf-8") as f:
         word_vec = json.load(f)
     word_vec = {k: torch.tensor(v, dtype=torch.float32) for k, v in word_vec.items()}
 
     EMBED_DIM = len(next(iter(word_vec.values())))
-    print(f"Embedding 维度自动设置为 {EMBED_DIM}")
+    print(f"Embedding dimension automatically set to {EMBED_DIM}")
 
-
-    # ==== 构建词表 ====
     def build_vocab(paths, use_subword=True):
         vocab = {}
-        idx = 1  # 0 用作 padding / SEP
+        idx = 1
         for path in paths:
             with open(path, "r", encoding="utf-8") as f:
                 for line in f:
@@ -71,9 +65,8 @@ def run_textcnn(
         return vocab
 
     vocab = build_vocab([train_path, test_path], use_subword)
-    vocab_size = len(vocab) + 1  # 0 padding/SEP
+    vocab_size = len(vocab) + 1
 
-    # ==== 合并句子生成索引序列 ====
     def sentpair2idx(sent_a, sent_b, vocab, max_len=SEQ_LEN, use_subword=True, sep_idx=0):
         idxs_a = [vocab.get(w.split("|")[1] if use_subword and "|" in w else w.split("|")[0], 0)
                   for w in sent_a.split()]
@@ -86,7 +79,6 @@ def run_textcnn(
             combined += [0]*(max_len - len(combined))
         return combined
 
-    # ==== 构建 embedding 矩阵 ====
     embedding_matrix = torch.zeros(vocab_size, EMBED_DIM)
     for token, idx in vocab.items():
         if token in word_vec:
@@ -96,7 +88,6 @@ def run_textcnn(
             if main in word_vec:
                 embedding_matrix[idx] = word_vec[main]
 
-    # ==== Dataset ====
     class TextPairDataset(Dataset):
         def __init__(self, path, vocab, max_len=SEQ_LEN, use_subword=True):
             self.data = []
@@ -115,7 +106,6 @@ def run_textcnn(
             x, label = self.data[idx]
             return torch.tensor(x), torch.tensor(label, dtype=torch.float32)
 
-    # ==== TextCNN 模型 ====
     class TextCNN(nn.Module):
         def __init__(self, embedding_matrix, n_filters=100, filter_sizes=[3,4,5], output_dim=1, dropout=0.3):
             super().__init__()
@@ -126,7 +116,7 @@ def run_textcnn(
                 for fs in filter_sizes
             ])
             self.pool_out_dim = len(filter_sizes) * n_filters
-            feature_dim = self.pool_out_dim  # 单塔，不再翻倍
+            feature_dim = self.pool_out_dim
             self.fc = nn.Sequential(
                 nn.Linear(feature_dim, 128),
                 nn.ReLU(),
@@ -135,18 +125,17 @@ def run_textcnn(
             )
 
         def forward(self, x):
-            x = self.embedding(x).permute(0,2,1)  # [batch, embed_dim, seq_len]
+            x = self.embedding(x).permute(0,2,1)
             conved = [torch.relu(conv(x)) for conv in self.convs]
             pooled = [torch.max(c, dim=2)[0] for c in conved]
             features = torch.cat(pooled, dim=1)
             out = self.fc(features)
             return out.squeeze()
 
-    # ==== 训练和测试函数 ====
     def train_epoch(model, loader, optimizer, criterion):
         model.train()
         losses = []
-        for x, labels in tqdm(loader, desc="训练", disable=not show_progress):
+        for x, labels in tqdm(loader, desc="Training", disable=not show_progress):
             x, labels = x.to(DEVICE), labels.to(DEVICE)
             optimizer.zero_grad()
             outputs = model(x)
@@ -160,7 +149,7 @@ def run_textcnn(
         model.eval()
         all_probs, all_labels = [], []
         with torch.no_grad():
-            for x, labels in tqdm(loader, desc="测试", disable=not show_progress):
+            for x, labels in tqdm(loader, desc="Testing", disable=not show_progress):
                 x, labels = x.to(DEVICE), labels.to(DEVICE)
                 outputs = model(x)
                 all_probs.extend(outputs.cpu().numpy())
@@ -174,11 +163,10 @@ def run_textcnn(
         f1 = f1_score(all_labels, y_pred, zero_division=0)
         return auroc, aupr, acc, precision, recall, f1
 
-    # ==== 多次训练 ====
     all_results = []
 
     for run_id in range(1, repeat + 1):
-        print(f"\n=== 第 {run_id} 次训练 ===")
+        print(f"\n=== Training Run {run_id} ===")
 
         train_dataset = TextPairDataset(train_path, vocab, SEQ_LEN, use_subword)
         test_dataset = TextPairDataset(test_path, vocab, SEQ_LEN, use_subword)
@@ -196,7 +184,7 @@ def run_textcnn(
 
         for epoch in range(1, EPOCHS + 1):
             train_loss = train_epoch(model, train_loader, optimizer, criterion)
-            print(f"Epoch {epoch}/{EPOCHS} | 训练损失: {train_loss:.4f}")
+            print(f"Epoch {epoch}/{EPOCHS} | Training Loss: {train_loss:.4f}")
 
             if train_loss < best_loss:
                 best_loss = train_loss
@@ -205,14 +193,13 @@ def run_textcnn(
             else:
                 patience_counter += 1
                 if patience_counter >= PATIENCE:
-                    print(f"训练提前终止，连续{PATIENCE}轮loss未下降")
+                    print(f"Early stopping, no loss improvement for {PATIENCE} consecutive epochs")
                     break
 
         model.load_state_dict(best_state_dict)
         model.to(DEVICE)
         auroc, aupr, acc, precision, recall, f1 = test_model(model, test_loader)
 
-        # 保存阈值指标 CSV
         if savecanshu:
             thresholds = np.arange(0.1, 1.0, 0.1)
             rows = []
@@ -241,19 +228,18 @@ def run_textcnn(
                 writer = csv.writer(f)
                 writer.writerow(["Threshold", "Accuracy", "Precision", "Recall", "F1"])
                 writer.writerows(rows)
-            print(f"✅ 阈值指标已保存到 {thresh_csv_path}")
+            print(f"✅ Threshold metrics saved to {thresh_csv_path}")
 
         if savemodel:
             model_dir = os.path.dirname(output_csv_path)
             os.makedirs(model_dir, exist_ok=True)
             model_path = os.path.join(model_dir, f"textcnn_run_{run_id}.pt")
             torch.save(model.state_dict(), model_path)
-            print(f"✅ 第 {run_id} 次训练模型已保存至 {model_path}")
+            print(f"✅ Model from Run {run_id} saved to {model_path}")
 
         print(f"Run {run_id} -- AUROC: {auroc:.4f}, AUPR: {aupr:.4f}, Acc: {acc:.4f}, Precision: {precision:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}")
         all_results.append({'auroc': auroc, 'aupr': aupr, 'acc': acc, 'precision': precision, 'recall': recall, 'f1': f1})
 
-    # ==== 保存 CSV ====
     os.makedirs(os.path.dirname(output_csv_path), exist_ok=True)
     with open(output_csv_path, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
@@ -268,5 +254,5 @@ def run_textcnn(
         mean_f1 = np.mean([r['f1'] for r in all_results])
         writer.writerow(["mean", mean_auroc, mean_aupr, mean_acc, mean_precision, mean_recall, mean_f1])
 
-    print(f"平均指标 -- AUROC: {mean_auroc:.4f}, AUPR: {mean_aupr:.4f}, Acc: {mean_acc:.4f}, Precision: {mean_precision:.4f}, Recall: {mean_recall:.4f}, F1: {mean_f1:.4f}")
-    print(f"\n✅ 所有 run 的结果及均值已保存至 {output_csv_path}")
+    print(f"Average Metrics -- AUROC: {mean_auroc:.4f}, AUPR: {mean_aupr:.4f}, Acc: {mean_acc:.4f}, Precision: {mean_precision:.4f}, Recall: {mean_recall:.4f}, F1: {mean_f1:.4f}")
+    print(f"\n✅ All run results and averages saved to {output_csv_path}")
